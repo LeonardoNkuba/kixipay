@@ -1,0 +1,12 @@
+{
+  "name": "@kixipay/types",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "dev": "echo \"@kixipay/types ready\"",
+    "build": "echo \"No build step yet for @kixipay/types\""
+  }
+}
