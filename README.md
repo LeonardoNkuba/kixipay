@@ -100,8 +100,8 @@ npm run dev
 
 ## Conta Demo (Seed)
 
-- Email: leonardo@kixipay.ao
-- Senha: 123456
+- Email: {privado}
+- Senha: {privado}
 
 ## Proximo Marco (Dia 2)
 
