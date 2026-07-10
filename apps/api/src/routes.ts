@@ -6,10 +6,13 @@ import { contributionsRouter } from "./modules/contributions/contributions.route
 import { loansRouter } from "./modules/loans/loans.routes.js";
 import { notificationsRouter } from "./modules/notifications/notifications.routes.js";
 import { auditRouter } from "./modules/audit/audit.routes.js";
+import { invitationsRouter } from "./modules/invitations/invitations.routes.js";
 
 export const apiRouter = Router();
 
 apiRouter.use("/auth", authRouter);
+// Sem requireAuth global: GET /:token precisa ser publico para quem ainda nao tem conta.
+apiRouter.use("/invitations", invitationsRouter);
 apiRouter.use("/groups", requireAuth, groupsRouter);
 apiRouter.use("/contributions", requireAuth, contributionsRouter);
 apiRouter.use("/loans", requireAuth, loansRouter);

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "Bash(curl -s -X POST http://localhost:3333/api/auth/register -H \"Content-Type: application/json\" -d '{\"firstName\":\"Admin\",\"lastName\":\"Teste\",\"email\":\"admin-invite-test@kixipay.dev\",\"password\":\"senha123\"}')",
+      "Bash(curl -s -X POST http://localhost:3333/api/invitations -H 'Content-Type: application/json' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluLWludml0ZS10ZXN0QGtpeGlwYXkuZGV2IiwiaWF0IjoxNzgzNzAyNzc1LCJleHAiOjE3ODQzMDc1NzUsInN1YiI6Ijg1NWM3ZjllLTJhNGItNDc5MC1iZWVmLTIyY2E3ZmMyYjJmNCJ9.tuaePnhetifuGOu16bNHSTStpAG-p6sIe3QCG-6fxE8' -d '{\"groupId\":\"fa6afe03-5623-4193-948a-f9816eaa7ee4\",\"email\":\"convidado-teste@kixipay.dev\",\"role\":\"TREASURER\"}')"
+    ]
+  }
+}

@@ -1,12 +1,14 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 
-export default function Home() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/dashboard";
   const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,9 +19,9 @@ export default function Home() {
   useEffect(() => {
     const token = localStorage.getItem("kixipay_token");
     if (token) {
-      router.replace("/dashboard");
+      router.replace(redirectTo);
     }
-  }, [router]);
+  }, [router, redirectTo]);
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -28,7 +30,7 @@ export default function Home() {
 
     try {
       await login(email, password);
-      router.push("/dashboard");
+      router.push(redirectTo);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Erro inesperado ao autenticar.");
     } finally {
@@ -37,10 +39,6 @@ export default function Home() {
   };
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_20%_10%,#6f101f_0%,#2b0a10_40%,#0f0f10_100%)] px-4 py-8 text-[#fbf7e6] sm:px-6 lg:px-10">
-      <div className="pointer-events-none absolute -left-20 top-6 h-72 w-72 rounded-full bg-[#c8102e]/45 blur-2xl" />
-      <div className="pointer-events-none absolute -right-20 bottom-10 h-72 w-72 rounded-full bg-[#ffce00]/30 blur-2xl" />
-
       <section className="relative z-10 w-full max-w-5xl overflow-hidden rounded-3xl border border-[#ffce00]/25 bg-[#141416]/90 shadow-[0_24px_70px_rgba(0,0,0,0.45)] backdrop-blur-sm">
         <div className="relative p-6 sm:p-8 md:p-10 lg:p-12">
           <div className="pointer-events-none absolute -left-16 -top-16 h-44 w-44 rounded-full bg-[#ffce00]/18" />
@@ -138,6 +136,18 @@ export default function Home() {
           </footer>
         </div>
       </section>
+  );
+}
+
+export default function Home() {
+  return (
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_20%_10%,#6f101f_0%,#2b0a10_40%,#0f0f10_100%)] px-4 py-8 text-[#fbf7e6] sm:px-6 lg:px-10">
+      <div className="pointer-events-none absolute -left-20 top-6 h-72 w-72 rounded-full bg-[#c8102e]/45 blur-2xl" />
+      <div className="pointer-events-none absolute -right-20 bottom-10 h-72 w-72 rounded-full bg-[#ffce00]/30 blur-2xl" />
+
+      <Suspense fallback={null}>
+        <LoginForm />
+      </Suspense>
 
       <div className="fixed bottom-5 right-4 z-20 flex flex-col gap-3 sm:bottom-7 sm:right-7">
         <button className="rounded-xl bg-[#ffce00] px-4 py-3 text-sm font-semibold text-[#111111] shadow-[0_10px_24px_rgba(0,0,0,0.35)] transition hover:brightness-95">

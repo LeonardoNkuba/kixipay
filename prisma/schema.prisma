@@ -217,6 +217,7 @@ model Invitation {
   id          String            @id @default(uuid())
   groupId      String
   email        String
+  role         MembershipRole    @default(MEMBER)
   token        String            @unique
   status       InvitationStatus  @default(PENDING)
   expiresAt    DateTime

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { apiFetch } from "@/services/api";
 import { getGroupById } from "@/services/groups";
+import { createInvitation, Invitation, listInvitations } from "@/services/invitations";
 import { Contribution, Group } from "@/types/domain";
 import {
   Badge,
@@ -36,11 +37,15 @@ export default function GroupDetailPage() {
   const [isContribLoading, setIsContribLoading] = useState(false);
 
   const { loans, isLoading: isLoansLoading } = useLoans(token, groupId);
-  const { members, addMember } = useMembers(group?.memberships);
+  const { members } = useMembers(group?.memberships);
 
-  const [memberName, setMemberName] = useState("");
+  const [invitations, setInvitations] = useState<Invitation[]>([]);
+  const [isInvitationsLoading, setIsInvitationsLoading] = useState(false);
   const [memberEmail, setMemberEmail] = useState("");
   const [memberRole, setMemberRole] = useState<"ADMIN" | "TREASURER" | "MEMBER">("MEMBER");
+  const [isInviting, setIsInviting] = useState(false);
+  const [inviteMessage, setInviteMessage] = useState("");
+  const [inviteError, setInviteError] = useState("");
 
   useEffect(() => {
     if (!token || !groupId) {
@@ -68,6 +73,27 @@ export default function GroupDetailPage() {
       .finally(() => setIsContribLoading(false));
   }, [groupId, tab, token]);
 
+  const loadInvitations = () => {
+    if (!token || !groupId) {
+      return;
+    }
+
+    setIsInvitationsLoading(true);
+    listInvitations(token, groupId)
+      .then((data) => setInvitations(data.filter((item) => item.status === "PENDING")))
+      .catch(() => setInvitations([]))
+      .finally(() => setIsInvitationsLoading(false));
+  };
+
+  useEffect(() => {
+    if (tab !== "membros") {
+      return;
+    }
+
+    loadInvitations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupId, tab, token]);
+
   const estimatedBalance = useMemo(() => {
     if (!group) {
       return 0;
@@ -77,18 +103,29 @@ export default function GroupDetailPage() {
     return Number(group.monthlyContribution) * activeMembers;
   }, [group, members]);
 
-  const onAddMember = (event: FormEvent<HTMLFormElement>) => {
+  const onAddMember = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!token || !groupId) {
+      return;
+    }
 
-    addMember({
-      name: memberName,
-      email: memberEmail,
-      role: memberRole,
-    });
+    setInviteError("");
+    setInviteMessage("");
+    setIsInviting(true);
 
-    setMemberName("");
-    setMemberEmail("");
-    setMemberRole("MEMBER");
+    try {
+      await createInvitation(token, { groupId, email: memberEmail, role: memberRole });
+      setInviteMessage(
+        "Convite gerado. Modo demo: verifique o console/terminal da API para encontrar o link.",
+      );
+      setMemberEmail("");
+      setMemberRole("MEMBER");
+      loadInvitations();
+    } catch (error) {
+      setInviteError(error instanceof Error ? error.message : "Erro ao gerar convite.");
+    } finally {
+      setIsInviting(false);
+    }
   };
 
   if (isLoading) {
@@ -155,14 +192,8 @@ export default function GroupDetailPage() {
 
       {tab === "membros" ? (
         <div className="space-y-4">
-          <Card title="Adicionar membro" subtitle="Formulario inicial (sem envio por convite ainda)">
-            <form className="grid gap-3 sm:grid-cols-4" onSubmit={onAddMember}>
-              <Input
-                label="Nome"
-                value={memberName}
-                onChange={(event) => setMemberName(event.target.value)}
-                required
-              />
+          <Card title="Convidar membro" subtitle="Gera um convite por email para entrar no grupo">
+            <form className="grid gap-3 sm:grid-cols-3" onSubmit={onAddMember}>
               <Input
                 label="Email"
                 type="email"
@@ -182,14 +213,25 @@ export default function GroupDetailPage() {
                 <option value="ADMIN">ADMIN</option>
               </Select>
               <div className="flex items-end">
-                <Button type="submit" className="w-full">
-                  Adicionar
+                <Button type="submit" className="w-full" disabled={isInviting}>
+                  {isInviting ? "Enviando..." : "Enviar convite"}
                 </Button>
               </div>
             </form>
+
+            {inviteMessage ? (
+              <p className="mt-3 rounded-lg border border-[#3f7d4a]/60 bg-[#204426]/10 px-3 py-2 text-xs text-[#204426]">
+                {inviteMessage}
+              </p>
+            ) : null}
+            {inviteError ? (
+              <p className="mt-3 rounded-lg border border-[#c8102e]/70 bg-[#c8102e]/10 px-3 py-2 text-xs text-[#6f101f]">
+                {inviteError}
+              </p>
+            ) : null}
           </Card>
 
-          <Table headers={["Nome", "Cargo", "Entrou em", "Status", "Origem"]}>
+          <Table headers={["Nome", "Cargo", "Entrou em", "Status"]}>
             {members.map((member) => (
               <tr key={member.id}>
                 <td className="px-4 py-3">{member.name}</td>
@@ -200,14 +242,25 @@ export default function GroupDetailPage() {
                     {member.isActive ? "Ativo" : "Inativo"}
                   </Badge>
                 </td>
-                <td className="px-4 py-3">
-                  <Badge tone={member.source === "api" ? "info" : "neutral"}>
-                    {member.source === "api" ? "API" : "Formulario"}
-                  </Badge>
-                </td>
               </tr>
             ))}
           </Table>
+
+          {isInvitationsLoading ? (
+            <Loading message="Carregando convites..." />
+          ) : invitations.length ? (
+            <Card title="Convites pendentes">
+              <Table headers={["Email", "Cargo", "Expira em"]}>
+                {invitations.map((invitation) => (
+                  <tr key={invitation.id}>
+                    <td className="px-4 py-3">{invitation.email}</td>
+                    <td className="px-4 py-3">{invitation.role}</td>
+                    <td className="px-4 py-3">{formatDate(invitation.expiresAt)}</td>
+                  </tr>
+                ))}
+              </Table>
+            </Card>
+          ) : null}
         </div>
       ) : null}
 

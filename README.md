@@ -23,9 +23,9 @@ Monorepo inicializado com:
 
 ## Marco Atual
 
-Dia 1 concluido.
+Dia 2 concluido.
 
-Entregas validadas:
+Entregas validadas (Dia 1):
 - Backend API operacional (Express + TypeScript)
 - Banco de dados PostgreSQL configurado com Prisma
 - Autenticacao JWT funcional
@@ -34,6 +34,14 @@ Entregas validadas:
 - Middleware de autenticacao ativo
 - Rotas protegidas no backend
 - Dashboard protegido no frontend
+
+Entregas validadas (Dia 2):
+- Sessao do frontend integrada com `GET /api/auth/me`
+- Fluxo de registro completo (frontend + API), com login automatico apos o cadastro
+- Recuperacao de senha (modo demo: link gerado e logado no console da API, sem envio real de email)
+- Dashboard com dados reais de grupos, contribuicoes e emprestimos
+- Convite de membros para grupos por email (token de convite, aceitacao via link, cadastro ou login do convidado)
+- Fallback de migrations do Prisma para o pooler do Supabase (`scripts/apply-migration.ts`), documentado em `prisma/README.md`
 
 ## Estrutura
 
@@ -103,8 +111,9 @@ npm run dev
 - Email: {privado}
 - Senha: {privado}
 
-## Proximo Marco (Dia 2)
+## Proximo Marco (Dia 3)
 
-- Integrar sessao do frontend com `GET /api/auth/me`
-- Implementar fluxo de registro no frontend
-- Montar dashboard com dados reais de grupos, contribuicoes e emprestimos
+- CRUD completo de grupos (editar, encerrar/remover)
+- Gerir membros existentes (alterar cargo, remover do grupo)
+- Fluxo completo de emprestimos (solicitacao, aprovacao, pagamento) ponta a ponta
+- Indice de confianca (trust score) com base em pontualidade de contribuicoes/pagamentos
