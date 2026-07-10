@@ -3,7 +3,7 @@ import { z } from "zod";
 import { asyncHandler } from "../../lib/http.js";
 import { prisma } from "../../lib/prisma.js";
 import { requireAuth } from "../../middlewares/auth.js";
-import { loginUser, registerUser } from "./auth.service.js";
+import { loginUser, registerUser, requestPasswordReset, resetPassword } from "./auth.service.js";
 
 const registerSchema = z.object({
   firstName: z.string().min(2),
@@ -15,6 +15,15 @@ const registerSchema = z.object({
 
 const loginSchema = z.object({
   email: z.string().email(),
+  password: z.string().min(6),
+});
+
+const forgotPasswordSchema = z.object({
+  email: z.string().email(),
+});
+
+const resetPasswordSchema = z.object({
+  token: z.string().min(1),
   password: z.string().min(6),
 });
 
@@ -55,5 +64,23 @@ authRouter.get(
     });
 
     res.json(user);
+  }),
+);
+
+authRouter.post(
+  "/forgot-password",
+  asyncHandler(async (req, res) => {
+    const payload = forgotPasswordSchema.parse(req.body);
+    const result = await requestPasswordReset(payload.email);
+    res.json(result);
+  }),
+);
+
+authRouter.post(
+  "/reset-password",
+  asyncHandler(async (req, res) => {
+    const payload = resetPasswordSchema.parse(req.body);
+    const result = await resetPassword(payload);
+    res.json(result);
   }),
 );

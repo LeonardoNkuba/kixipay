@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "node:crypto";
 import { ApiError } from "../../lib/http.js";
 import { prisma } from "../../lib/prisma.js";
 
@@ -73,4 +74,60 @@ export const loginUser = async (input: { email: string; password: string }) => {
     },
     token,
   };
+};
+
+const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hora
+
+export const requestPasswordReset = async (email: string) => {
+  const user = await prisma.user.findUnique({ where: { email } });
+
+  // Resposta generica sempre, mesmo se o email nao existir (evita enumeracao de contas).
+  if (!user) {
+    return { message: "Se o email existir, um link de recuperacao foi gerado." };
+  }
+
+  const token = crypto.randomBytes(32).toString("hex");
+  const expiresAt = new Date(Date.now() + RESET_TOKEN_TTL_MS);
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      resetPasswordToken: token,
+      resetPasswordExpiresAt: expiresAt,
+    },
+  });
+
+  const resetUrl = `${process.env.WEB_APP_URL || "http://localhost:3000"}/reset-password?token=${token}`;
+
+  // MODO DEMO (hackathon): sem servico de email configurado.
+  // Em producao, isto deveria ser enviado por email (Resend, SES, etc.) e nunca logado.
+  console.log("\n=== RECUPERACAO DE SENHA (modo demo, sem email real) ===");
+  console.log(`Utilizador: ${user.email}`);
+  console.log(`Link de reset (valido por 1h): ${resetUrl}`);
+  console.log("=========================================================\n");
+
+  return { message: "Se o email existir, um link de recuperacao foi gerado." };
+};
+
+export const resetPassword = async (input: { token: string; password: string }) => {
+  const user = await prisma.user.findUnique({
+    where: { resetPasswordToken: input.token },
+  });
+
+  if (!user || !user.resetPasswordExpiresAt || user.resetPasswordExpiresAt < new Date()) {
+    throw new ApiError(400, "Token invalido ou expirado.");
+  }
+
+  const passwordHash = await bcrypt.hash(input.password, 10);
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      passwordHash,
+      resetPasswordToken: null,
+      resetPasswordExpiresAt: null,
+    },
+  });
+
+  return { message: "Palavra-passe atualizada com sucesso." };
 };

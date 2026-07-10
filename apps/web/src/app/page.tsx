@@ -5,16 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 
-export default function RegisterPage() {
+export default function Home() {
   const router = useRouter();
-  const { register } = useAuth();
-
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -29,30 +24,13 @@ export default function RegisterPage() {
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setErrorMessage("");
-
-    if (password.length < 6) {
-      setErrorMessage("A palavra-passe deve ter no minimo 6 caracteres.");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setErrorMessage("As palavras-passe nao coincidem.");
-      return;
-    }
-
     setIsLoading(true);
 
     try {
-      await register({
-        firstName,
-        lastName,
-        email,
-        phone: phone || undefined,
-        password,
-      });
+      await login(email, password);
       router.push("/dashboard");
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Erro inesperado ao criar conta.");
+      setErrorMessage(error instanceof Error ? error.message : "Erro inesperado ao autenticar.");
     } finally {
       setIsLoading(false);
     }
@@ -72,53 +50,17 @@ export default function RegisterPage() {
             <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#ffce00]">
               kixipay
             </p>
-            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Criar conta</h1>
+            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Bem-vindo de volta</h1>
             <p className="text-sm text-[#d8cfb2]">
-              Junte-se a sua kixikila com transparencia e seguranca desde o primeiro dia.
+              Entre para acompanhar sua kixikila com transparencia e seguranca.
             </p>
           </header>
 
           <form
-            className="mx-auto mt-10 w-full max-w-md space-y-5"
-            aria-label="Formulario de registro"
+            className="mx-auto mt-10 w-full max-w-md space-y-6"
+            aria-label="Formulario de login"
             onSubmit={onSubmit}
           >
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <label htmlFor="firstName" className="text-sm text-[#ffce00]">
-                  Nome
-                </label>
-                <input
-                  id="firstName"
-                  name="firstName"
-                  type="text"
-                  placeholder="Leonardo"
-                  value={firstName}
-                  onChange={(event) => setFirstName(event.target.value)}
-                  required
-                  minLength={2}
-                  className="h-12 w-full rounded-xl border border-[#ffce00]/35 bg-[#0f0f10]/60 px-4 text-sm outline-none transition focus:border-[#ffce00] focus:ring-2 focus:ring-[#ffce00]/35"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="lastName" className="text-sm text-[#ffce00]">
-                  Sobrenome
-                </label>
-                <input
-                  id="lastName"
-                  name="lastName"
-                  type="text"
-                  placeholder="Silva"
-                  value={lastName}
-                  onChange={(event) => setLastName(event.target.value)}
-                  required
-                  minLength={2}
-                  className="h-12 w-full rounded-xl border border-[#ffce00]/35 bg-[#0f0f10]/60 px-4 text-sm outline-none transition focus:border-[#ffce00] focus:ring-2 focus:ring-[#ffce00]/35"
-                />
-              </div>
-            </div>
-
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm text-[#ffce00]">
                 Email
@@ -136,66 +78,30 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="phone" className="text-sm text-[#ffce00]">
-                Telefone <span className="text-[#d8cfb2]">(opcional)</span>
-              </label>
+              <div className="flex items-center justify-between">
+                <label htmlFor="password" className="text-sm text-[#ffce00]">
+                  Palavra-passe
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((value) => !value)}
+                  className="text-xs text-[#d8cfb2] transition hover:text-[#ffce00]"
+                >
+                  {showPassword ? "Ocultar" : "Mostrar"}
+                </button>
+              </div>
               <input
-                id="phone"
-                name="phone"
-                type="tel"
-                placeholder="+244 9XX XXX XXX"
-                value={phone}
-                onChange={(event) => setPhone(event.target.value)}
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                required
                 className="h-12 w-full rounded-xl border border-[#ffce00]/35 bg-[#0f0f10]/60 px-4 text-sm outline-none transition focus:border-[#ffce00] focus:ring-2 focus:ring-[#ffce00]/35"
               />
+              <p className="text-xs text-[#d8cfb2]">Use no minimo 6 caracteres.</p>
             </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label htmlFor="password" className="text-sm text-[#ffce00]">
-                    Palavra-passe
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((value) => !value)}
-                    className="text-xs text-[#d8cfb2] transition hover:text-[#ffce00]"
-                  >
-                    {showPassword ? "Ocultar" : "Mostrar"}
-                  </button>
-                </div>
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  required
-                  minLength={6}
-                  className="h-12 w-full rounded-xl border border-[#ffce00]/35 bg-[#0f0f10]/60 px-4 text-sm outline-none transition focus:border-[#ffce00] focus:ring-2 focus:ring-[#ffce00]/35"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="confirmPassword" className="text-sm text-[#ffce00]">
-                  Confirmar
-                </label>
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  value={confirmPassword}
-                  onChange={(event) => setConfirmPassword(event.target.value)}
-                  required
-                  minLength={6}
-                  className="h-12 w-full rounded-xl border border-[#ffce00]/35 bg-[#0f0f10]/60 px-4 text-sm outline-none transition focus:border-[#ffce00] focus:ring-2 focus:ring-[#ffce00]/35"
-                />
-              </div>
-            </div>
-
-            <p className="text-xs text-[#d8cfb2]">Use no minimo 6 caracteres na palavra-passe.</p>
 
             {errorMessage ? (
               <p className="rounded-lg border border-[#c8102e]/70 bg-[#c8102e]/15 px-3 py-2 text-xs text-[#ffb8c4]">
@@ -208,20 +114,39 @@ export default function RegisterPage() {
               disabled={isLoading}
               className="h-12 w-full rounded-xl bg-[#c8102e] text-sm font-semibold tracking-wide text-[#fbf7e6] transition hover:bg-[#a40d25] disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {isLoading ? "A criar conta..." : "Criar conta"}
+              {isLoading ? "A entrar..." : "Entrar"}
             </button>
 
-            <div className="flex flex-col items-center justify-center gap-3 pt-1 text-sm text-[#d8cfb2]">
-              <span>
-                Ja tem conta?{" "}
-                <Link href="/" className="font-semibold text-[#ffce00] transition hover:underline">
-                  Entrar
-                </Link>
-              </span>
+            <div className="flex flex-col items-center justify-between gap-3 pt-1 text-sm text-[#d8cfb2] sm:flex-row">
+              <Link href="/forgot-password" className="transition hover:text-[#ffce00]">
+                Esqueci a palavra-passe
+              </Link>
+              <Link href="/register" className="transition hover:text-[#ffce00]">
+                Criar conta
+              </Link>
             </div>
           </form>
+
+          <footer className="mt-10 flex flex-col items-center justify-center gap-3 border-t border-[#ffce00]/20 pt-6 text-xs text-[#d8cfb2] sm:flex-row">
+            <button type="button" className="transition hover:text-[#ffce00]">
+              Termos de uso
+            </button>
+            <span className="hidden sm:inline">|</span>
+            <button type="button" className="transition hover:text-[#ffce00]">
+              Politica de privacidade
+            </button>
+          </footer>
         </div>
       </section>
+
+      <div className="fixed bottom-5 right-4 z-20 flex flex-col gap-3 sm:bottom-7 sm:right-7">
+        <button className="rounded-xl bg-[#ffce00] px-4 py-3 text-sm font-semibold text-[#111111] shadow-[0_10px_24px_rgba(0,0,0,0.35)] transition hover:brightness-95">
+          Pedir conta
+        </button>
+        <button className="rounded-xl bg-[#1f1f22] px-4 py-3 text-sm font-semibold text-[#fbf7e6] shadow-[0_10px_24px_rgba(0,0,0,0.35)] transition hover:bg-[#2b2b30]">
+          Precisa de ajuda?
+        </button>
+      </div>
     </main>
   );
 }
