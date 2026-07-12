@@ -23,7 +23,7 @@ Monorepo inicializado com:
 
 ## Marco Atual
 
-Dia 2 concluido.
+Dia 3 concluido (CRUD de grupos, gestao de membros e fluxo de emprestimos ponta a ponta).
 
 Entregas validadas (Dia 1):
 - Backend API operacional (Express + TypeScript)
@@ -42,6 +42,12 @@ Entregas validadas (Dia 2):
 - Dashboard com dados reais de grupos, contribuicoes e emprestimos
 - Convite de membros para grupos por email (token de convite, aceitacao via link, cadastro ou login do convidado)
 - Fallback de migrations do Prisma para o pooler do Supabase (`scripts/apply-migration.ts`), documentado em `prisma/README.md`
+
+Entregas validadas (Dia 3):
+- CRUD completo de grupos: edicao (`PATCH /api/groups/:groupId`) e mudanca de estado - pausar/reativar/encerrar (`PATCH /api/groups/:groupId/status`)
+- Gestao de membros existentes: alterar cargo e remover do grupo (`PATCH`/`DELETE /api/groups/:groupId/members/:membershipId`), com protecao contra remover o ultimo administrador do grupo
+- Fluxo de emprestimos ponta a ponta na interface: solicitacao, aprovacao/rejeicao e registo de pagamento (endpoints de emprestimo ja existiam na API; passaram a estar acessiveis pela UI)
+- Correcao de seguranca: `GET /api/loans/group/:groupId` deixou de expor hash de senha e token de recuperacao dos utilizadores
 
 ## Estrutura
 
@@ -111,9 +117,7 @@ npm run dev
 - Email: {privado}
 - Senha: {privado}
 
-## Proximo Marco (Dia 3)
+## Proximo Marco (Dia 4)
 
-- CRUD completo de grupos (editar, encerrar/remover)
-- Gerir membros existentes (alterar cargo, remover do grupo)
-- Fluxo completo de emprestimos (solicitacao, aprovacao, pagamento) ponta a ponta
-- Indice de confianca (trust score) com base em pontualidade de contribuicoes/pagamentos
+- Indice de confianca (trust score) calculado a partir da pontualidade de contribuicoes/pagamentos (modelo ja existe no schema; falta o servico de calculo e a atualizacao automatica apos cada pagamento)
+- Fluxo de contribuicoes na interface (hoje so existe criacao via API/seed)

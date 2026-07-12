@@ -40,9 +40,13 @@ loansRouter.get(
   asyncHandler(async (req, res) => {
     const { groupId } = groupParamsSchema.parse(req.params);
 
+    const userSelect = {
+      select: { id: true, firstName: true, lastName: true, email: true },
+    };
+
     const loans = await prisma.loan.findMany({
       where: { groupId },
-      include: { borrower: true, approver: true, payments: true },
+      include: { borrower: userSelect, approver: userSelect, payments: true },
       orderBy: { createdAt: "desc" },
     });
 

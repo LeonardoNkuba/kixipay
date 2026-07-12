@@ -32,3 +32,31 @@ export const createGroup = (token: string, input: CreateGroupInput) => {
     token,
   );
 };
+
+export type UpdateGroupInput = {
+  name?: string;
+  description?: string;
+  monthlyContribution?: number;
+  maxMembers?: number;
+  cycleType?: "WEEKLY" | "MONTHLY";
+};
+
+export const updateGroup = (token: string, groupId: string, input: UpdateGroupInput) => {
+  return apiFetch<Group>(
+    `/groups/${groupId}`,
+    { method: "PATCH", body: JSON.stringify(input) },
+    token,
+  );
+};
+
+export const updateGroupStatus = (
+  token: string,
+  groupId: string,
+  status: "ACTIVE" | "PAUSED" | "CLOSED",
+) => {
+  return apiFetch<Group>(
+    `/groups/${groupId}/status`,
+    { method: "PATCH", body: JSON.stringify({ status }) },
+    token,
+  );
+};

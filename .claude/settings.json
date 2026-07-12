@@ -3,7 +3,19 @@
     "allow": [
       "Bash(npx tsc *)",
       "Bash(curl -s -X POST http://localhost:3333/api/auth/register -H \"Content-Type: application/json\" -d '{\"firstName\":\"Admin\",\"lastName\":\"Teste\",\"email\":\"admin-invite-test@kixipay.dev\",\"password\":\"senha123\"}')",
-      "Bash(curl -s -X POST http://localhost:3333/api/invitations -H 'Content-Type: application/json' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluLWludml0ZS10ZXN0QGtpeGlwYXkuZGV2IiwiaWF0IjoxNzgzNzAyNzc1LCJleHAiOjE3ODQzMDc1NzUsInN1YiI6Ijg1NWM3ZjllLTJhNGItNDc5MC1iZWVmLTIyY2E3ZmMyYjJmNCJ9.tuaePnhetifuGOu16bNHSTStpAG-p6sIe3QCG-6fxE8' -d '{\"groupId\":\"fa6afe03-5623-4193-948a-f9816eaa7ee4\",\"email\":\"convidado-teste@kixipay.dev\",\"role\":\"TREASURER\"}')"
+      "Bash(curl -s -X POST http://localhost:3333/api/invitations -H 'Content-Type: application/json' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluLWludml0ZS10ZXN0QGtpeGlwYXkuZGV2IiwiaWF0IjoxNzgzNzAyNzc1LCJleHAiOjE3ODQzMDc1NzUsInN1YiI6Ijg1NWM3ZjllLTJhNGItNDc5MC1iZWVmLTIyY2E3ZmMyYjJmNCJ9.tuaePnhetifuGOu16bNHSTStpAG-p6sIe3QCG-6fxE8' -d '{\"groupId\":\"fa6afe03-5623-4193-948a-f9816eaa7ee4\",\"email\":\"convidado-teste@kixipay.dev\",\"role\":\"TREASURER\"}')",
+      "Skill(run)",
+      "Skill(run:*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3333/health)",
+      "Bash(which chromium-cli *)",
+      "Read(//c/Users/leona/AppData/Local/Temp/claude/**)",
+      "Bash(node \"C:/Users/leona/AppData/Local/Temp/claude/c--Users-leona-OneDrive-Documentos-Projetos-kixipay/8266abad-25bb-4e6d-b47c-0af63127e330/scratchpad/ui_check.js\")",
+      "Bash(npm root *)",
+      "Read(//c//**)",
+      "Bash(npm init *)",
+      "Bash(npm install *)",
+      "Bash(npx playwright *)",
+      "Bash(node ui_check.js)"
     ]
   }
 }
