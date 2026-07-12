@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { apiFetch } from "@/services/api";
+import { createContribution } from "@/services/contributions";
 import { getGroupById, updateGroup, updateGroupStatus } from "@/services/groups";
 import { createInvitation, Invitation, listInvitations } from "@/services/invitations";
 import { removeMember, updateMemberRole } from "@/services/members";
@@ -88,6 +89,17 @@ export default function GroupDetailPage() {
   const [paymentAmount, setPaymentAmount] = useState("");
   const [isSavingPayment, setIsSavingPayment] = useState(false);
 
+  const [isContribOpen, setIsContribOpen] = useState(false);
+  const [isSavingContrib, setIsSavingContrib] = useState(false);
+  const [contribError, setContribError] = useState("");
+  const [contribUserId, setContribUserId] = useState("");
+  const [contribAmount, setContribAmount] = useState("");
+  const [contribReferenceMonth, setContribReferenceMonth] = useState(() =>
+    new Date().toISOString().slice(0, 7),
+  );
+  const [contribStatus, setContribStatus] = useState<"PAID" | "LATE">("PAID");
+  const [contribPaidAt, setContribPaidAt] = useState(() => new Date().toISOString().slice(0, 10));
+
   const reloadGroup = () => {
     if (!token || !groupId) {
       return;
@@ -110,16 +122,25 @@ export default function GroupDetailPage() {
       .finally(() => setIsLoading(false));
   }, [groupId, token]);
 
+  const loadContributions = () => {
+    if (!token || !groupId) {
+      return;
+    }
+
+    setIsContribLoading(true);
+    return apiFetch<Contribution[]>(`/contributions/group/${groupId}`, { method: "GET" }, token)
+      .then((data) => setContributions(data))
+      .catch(() => setContributions([]))
+      .finally(() => setIsContribLoading(false));
+  };
+
   useEffect(() => {
     if (!token || !groupId || tab !== "contribuicoes") {
       return;
     }
 
-    setIsContribLoading(true);
-    apiFetch<Contribution[]>(`/contributions/group/${groupId}`, { method: "GET" }, token)
-      .then((data) => setContributions(data))
-      .catch(() => setContributions([]))
-      .finally(() => setIsContribLoading(false));
+    loadContributions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupId, tab, token]);
 
   const loadInvitations = () => {
@@ -339,6 +360,44 @@ export default function GroupDetailPage() {
     }
   };
 
+  const openContribModal = () => {
+    setContribUserId(user?.id || "");
+    setContribAmount(group ? String(Number(group.monthlyContribution)) : "");
+    setContribReferenceMonth(new Date().toISOString().slice(0, 7));
+    setContribStatus("PAID");
+    setContribPaidAt(new Date().toISOString().slice(0, 10));
+    setContribError("");
+    setIsContribOpen(true);
+  };
+
+  const onRegisterContribution = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!token || !groupId) {
+      return;
+    }
+
+    setContribError("");
+    setIsSavingContrib(true);
+
+    try {
+      await createContribution(token, {
+        groupId,
+        userId: canApproveLoans ? contribUserId || undefined : undefined,
+        amount: Number(contribAmount),
+        referenceMonth: `${contribReferenceMonth}-01`,
+        status: contribStatus,
+        paidAt: contribPaidAt,
+      });
+      setIsContribOpen(false);
+      await loadContributions();
+      await reloadGroup();
+    } catch (err) {
+      setContribError(err instanceof Error ? err.message : "Erro ao registar contribuicao.");
+    } finally {
+      setIsSavingContrib(false);
+    }
+  };
+
   if (isLoading) {
     return <Loading message="Carregando detalhes do grupo..." />;
   }
@@ -473,12 +532,15 @@ export default function GroupDetailPage() {
             </p>
           ) : null}
 
-          <Table headers={["Nome", "Cargo", "Entrou em", "Status", isAdmin ? "Acoes" : ""]}>
+          <Table
+            headers={["Nome", "Cargo", "Entrou em", "Status", "Confianca", isAdmin ? "Acoes" : ""]}
+          >
             {(group.memberships || []).map((membership) => {
               const name = membership.user
                 ? `${membership.user.firstName} ${membership.user.lastName}`
                 : "Membro";
               const isSelf = membership.userId === user?.id;
+              const trustScore = membership.trustScore;
 
               return (
                 <tr key={membership.id}>
@@ -505,6 +567,25 @@ export default function GroupDetailPage() {
                     <Badge tone={membership.isActive ? "success" : "warning"}>
                       {membership.isActive ? "Ativo" : "Inativo"}
                     </Badge>
+                  </td>
+                  <td className="px-4 py-3">
+                    {trustScore ? (
+                      <Badge
+                        tone={
+                          trustScore.score >= 80
+                            ? "success"
+                            : trustScore.score >= 50
+                              ? "warning"
+                              : "danger"
+                        }
+                      >
+                        {`${trustScore.score} (${trustScore.onTimePayments}/${
+                          trustScore.onTimePayments + trustScore.latePayments
+                        })`}
+                      </Badge>
+                    ) : (
+                      <Badge tone="neutral">Sem historico</Badge>
+                    )}
                   </td>
                   {isAdmin ? (
                     <td className="px-4 py-3">
@@ -543,37 +624,47 @@ export default function GroupDetailPage() {
       ) : null}
 
       {tab === "contribuicoes" ? (
-        isContribLoading ? (
-          <Loading message="Carregando contribuicoes..." />
-        ) : contributions.length ? (
-          <Table headers={["Membro", "Valor", "Referencia", "Status"]}>
-            {contributions.map((item) => (
-              <tr key={item.id}>
-                <td className="px-4 py-3">{item.userId.slice(0, 8)}</td>
-                <td className="px-4 py-3">{formatCurrency(Number(item.amount), group.currency)}</td>
-                <td className="px-4 py-3">{formatDate(item.referenceMonth)}</td>
-                <td className="px-4 py-3">
-                  <Badge
-                    tone={
-                      item.status === "PAID"
-                        ? "success"
-                        : item.status === "LATE"
-                          ? "danger"
-                          : "warning"
-                    }
-                  >
-                    {item.status}
-                  </Badge>
-                </td>
-              </tr>
-            ))}
-          </Table>
-        ) : (
-          <EmptyState
-            title="Sem contribuicoes"
-            description="Nenhuma contribuicao foi registrada para este grupo."
-          />
-        )
+        <div className="space-y-4">
+          <div className="flex justify-end">
+            <Button disabled={group.status === "CLOSED"} onClick={openContribModal}>
+              Registar contribuicao
+            </Button>
+          </div>
+
+          {isContribLoading ? (
+            <Loading message="Carregando contribuicoes..." />
+          ) : contributions.length ? (
+            <Table headers={["Membro", "Valor", "Referencia", "Status"]}>
+              {contributions.map((item) => (
+                <tr key={item.id}>
+                  <td className="px-4 py-3">
+                    {item.user ? `${item.user.firstName} ${item.user.lastName}` : item.userId.slice(0, 8)}
+                  </td>
+                  <td className="px-4 py-3">{formatCurrency(Number(item.amount), group.currency)}</td>
+                  <td className="px-4 py-3">{formatDate(item.referenceMonth)}</td>
+                  <td className="px-4 py-3">
+                    <Badge
+                      tone={
+                        item.status === "PAID"
+                          ? "success"
+                          : item.status === "LATE"
+                            ? "danger"
+                            : "warning"
+                      }
+                    >
+                      {item.status}
+                    </Badge>
+                  </td>
+                </tr>
+              ))}
+            </Table>
+          ) : (
+            <EmptyState
+              title="Sem contribuicoes"
+              description="Nenhuma contribuicao foi registrada para este grupo."
+            />
+          )}
+        </div>
       ) : null}
 
       {tab === "emprestimos" ? (
@@ -784,6 +875,80 @@ export default function GroupDetailPage() {
             </Button>
             <Button type="submit" disabled={isSavingPayment}>
               {isSavingPayment ? "A guardar..." : "Registar"}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal
+        title="Registar contribuicao"
+        isOpen={isContribOpen}
+        onClose={() => setIsContribOpen(false)}
+      >
+        <form className="space-y-4" onSubmit={onRegisterContribution}>
+          {canApproveLoans ? (
+            <Select
+              label="Membro"
+              value={contribUserId}
+              onChange={(event) => setContribUserId(event.target.value)}
+              required
+            >
+              {(group.memberships || [])
+                .filter((membership) => membership.isActive)
+                .map((membership) => (
+                  <option key={membership.id} value={membership.userId}>
+                    {membership.user
+                      ? `${membership.user.firstName} ${membership.user.lastName}`
+                      : membership.userId}
+                  </option>
+                ))}
+            </Select>
+          ) : null}
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Input
+              label="Valor"
+              type="number"
+              min={1}
+              value={contribAmount}
+              onChange={(event) => setContribAmount(event.target.value)}
+              required
+            />
+            <Input
+              label="Mes de referencia"
+              type="month"
+              value={contribReferenceMonth}
+              onChange={(event) => setContribReferenceMonth(event.target.value)}
+              required
+            />
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Select
+              label="Status"
+              value={contribStatus}
+              onChange={(event) => setContribStatus(event.target.value as "PAID" | "LATE")}
+            >
+              <option value="PAID">Pago</option>
+              <option value="LATE">Pago com atraso</option>
+            </Select>
+            <Input
+              label="Data do pagamento"
+              type="date"
+              value={contribPaidAt}
+              onChange={(event) => setContribPaidAt(event.target.value)}
+              required
+            />
+          </div>
+
+          {contribError ? <p className="text-sm text-[#a31533]">{contribError}</p> : null}
+
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" type="button" onClick={() => setIsContribOpen(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={isSavingContrib}>
+              {isSavingContrib ? "A guardar..." : "Registar"}
             </Button>
           </div>
         </form>

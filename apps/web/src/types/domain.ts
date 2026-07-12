@@ -76,6 +76,12 @@ export type Contribution = {
   status: "PENDING" | "PAID" | "LATE";
   paidAt?: string | null;
   createdAt: string;
+  user?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
 };
 
 export type DashboardStats = {

@@ -23,7 +23,7 @@ Monorepo inicializado com:
 
 ## Marco Atual
 
-Dia 3 concluido (CRUD de grupos, gestao de membros e fluxo de emprestimos ponta a ponta).
+Dia 4 concluido (indice de confianca e fluxo de contribuicoes na interface).
 
 Entregas validadas (Dia 1):
 - Backend API operacional (Express + TypeScript)
@@ -48,6 +48,12 @@ Entregas validadas (Dia 3):
 - Gestao de membros existentes: alterar cargo e remover do grupo (`PATCH`/`DELETE /api/groups/:groupId/members/:membershipId`), com protecao contra remover o ultimo administrador do grupo
 - Fluxo de emprestimos ponta a ponta na interface: solicitacao, aprovacao/rejeicao e registo de pagamento (endpoints de emprestimo ja existiam na API; passaram a estar acessiveis pela UI)
 - Correcao de seguranca: `GET /api/loans/group/:groupId` deixou de expor hash de senha e token de recuperacao dos utilizadores
+
+Entregas validadas (Dia 4):
+- Servico de indice de confianca (`apps/api/src/modules/trust-score`): recalcula `score`/`onTimePayments`/`latePayments` por membro a cada contribuicao ou emprestimo pago
+- Pontualidade de contribuicoes calculada a partir do dia de cobranca do grupo (`GroupSettings.collectionDay`); pontualidade de emprestimos calculada ao quitar o valor total antes ou depois da data de vencimento
+- Interface de contribuicoes: registo de pagamento (admin/tesoureiro podem registar por qualquer membro; membro comum so registra a propria contribuicao)
+- Badge de confianca na aba Membros de cada grupo
 
 ## Estrutura
 
@@ -117,7 +123,7 @@ npm run dev
 - Email: {privado}
 - Senha: {privado}
 
-## Proximo Marco (Dia 4)
+## Proximo Marco (Dia 5)
 
-- Indice de confianca (trust score) calculado a partir da pontualidade de contribuicoes/pagamentos (modelo ja existe no schema; falta o servico de calculo e a atualizacao automatica apos cada pagamento)
-- Fluxo de contribuicoes na interface (hoje so existe criacao via API/seed)
+- Relatorios (`/reports`) com dados reais (hoje e apenas um placeholder "modulo em preparacao")
+- Consolidar graficos do dashboard (ja existe um grafico de contribuicao por grupo; falta cobrir emprestimos e evolucao no tempo)

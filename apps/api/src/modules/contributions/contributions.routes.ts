@@ -3,6 +3,7 @@ import { ContributionStatus, TransactionType } from "@prisma/client";
 import { z } from "zod";
 import { ApiError, asyncHandler } from "../../lib/http.js";
 import { prisma } from "../../lib/prisma.js";
+import { recordPunctualityEvent } from "../trust-score/trust-score.service.js";
 
 const createContributionSchema = z.object({
   groupId: z.string().uuid(),
@@ -61,6 +62,9 @@ contributionsRouter.post(
       throw new ApiError(400, "Membro invalido para o grupo.");
     }
 
+    const paidAt =
+      payload.paidAt ?? (payload.status !== ContributionStatus.PENDING ? new Date() : undefined);
+
     const contribution = await prisma.$transaction(async (tx) => {
       const created = await tx.contribution.create({
         data: {
@@ -69,7 +73,7 @@ contributionsRouter.post(
           amount: payload.amount,
           referenceMonth: payload.referenceMonth,
           status: payload.status,
-          paidAt: payload.paidAt,
+          paidAt,
         },
       });
 
@@ -93,6 +97,29 @@ contributionsRouter.post(
           newValue: created,
         },
       });
+
+      if (payload.status !== ContributionStatus.PENDING) {
+        let onTime = payload.status === ContributionStatus.PAID;
+
+        if (onTime) {
+          const settings = await tx.groupSettings.findUnique({
+            where: { groupId: payload.groupId },
+          });
+
+          if (settings) {
+            const dueDate = new Date(
+              Date.UTC(
+                payload.referenceMonth.getUTCFullYear(),
+                payload.referenceMonth.getUTCMonth(),
+                settings.collectionDay,
+              ),
+            );
+            onTime = (paidAt as Date) <= dueDate;
+          }
+        }
+
+        await recordPunctualityEvent(tx, membership.id, onTime);
+      }
 
       return created;
     });

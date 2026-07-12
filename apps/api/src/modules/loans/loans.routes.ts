@@ -3,6 +3,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { ApiError, asyncHandler } from "../../lib/http.js";
 import { prisma } from "../../lib/prisma.js";
+import { recordPunctualityEvent } from "../trust-score/trust-score.service.js";
 
 const createLoanSchema = z.object({
   groupId: z.string().uuid(),
@@ -210,6 +211,15 @@ loansRouter.post(
           where: { id: loan.id },
           data: { status: LoanStatus.PAID },
         });
+
+        const membership = await tx.membership.findUnique({
+          where: { userId_groupId: { userId: loan.userId, groupId: loan.groupId } },
+        });
+
+        if (membership) {
+          const onTime = payload.paidAt <= loan.dueDate;
+          await recordPunctualityEvent(tx, membership.id, onTime);
+        }
       }
 
       await tx.auditLog.create({
