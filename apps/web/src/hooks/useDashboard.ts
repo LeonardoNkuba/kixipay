@@ -11,6 +11,7 @@ const initialState: DashboardStats = {
   activeLoans: 0,
   groupsCount: 0,
   chartData: [],
+  loansByStatus: [],
 };
 
 export const useDashboard = (token: string | null) => {

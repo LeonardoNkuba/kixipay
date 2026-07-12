@@ -5,6 +5,8 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
+  LabelList,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -15,9 +17,30 @@ import { useAuth } from "@/hooks/useAuth";
 import { useDashboard } from "@/hooks/useDashboard";
 import { formatCurrency } from "@/utils/format";
 
+const loanStatusLabel: Record<string, string> = {
+  PENDING: "Pendente",
+  APPROVED: "Aprovado",
+  REJECTED: "Rejeitado",
+  PAID: "Pago",
+};
+
+const loanStatusColor: Record<string, string> = {
+  PENDING: "#B98900",
+  APPROVED: "#1D6FD1",
+  REJECTED: "#B0223B",
+  PAID: "#1E8E5A",
+};
+
 export default function DashboardPage() {
   const { token } = useAuth();
   const { stats, isLoading, error, refresh } = useDashboard(token);
+
+  const loanChartData = stats.loansByStatus.map((item) => ({
+    status: item.status,
+    name: loanStatusLabel[item.status],
+    count: item.count,
+  }));
+  const totalLoans = loanChartData.reduce((acc, item) => acc + item.count, 0);
 
   if (isLoading) {
     return <Loading message="Carregando indicadores do dashboard..." />;
@@ -80,6 +103,32 @@ export default function DashboardPage() {
           <EmptyState
             title="Sem grupos para analisar"
             description="Crie seu primeiro grupo para visualizar os indicadores no dashboard."
+          />
+        )}
+      </Card>
+
+      <Card title="Emprestimos por Status" subtitle="Distribuicao em todos os seus grupos">
+        {totalLoans ? (
+          <div className="h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={loanChartData} barCategoryGap="28%">
+                <CartesianGrid strokeDasharray="4 4" stroke="#f0e5bf" vertical={false} />
+                <XAxis dataKey="name" stroke="#8a7227" fontSize={12} />
+                <YAxis stroke="#8a7227" fontSize={12} allowDecimals={false} />
+                <Tooltip />
+                <Bar dataKey="count" radius={[4, 4, 0, 0]} maxBarSize={64}>
+                  {loanChartData.map((entry) => (
+                    <Cell key={entry.status} fill={loanStatusColor[entry.status]} />
+                  ))}
+                  <LabelList dataKey="count" position="top" fontSize={12} fill="#584713" />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <EmptyState
+            title="Sem emprestimos"
+            description="Ainda nao ha emprestimos registados nos seus grupos."
           />
         )}
       </Card>

@@ -23,7 +23,7 @@ Monorepo inicializado com:
 
 ## Marco Atual
 
-Dia 4 concluido (indice de confianca e fluxo de contribuicoes na interface).
+Dia 5 concluido (endpoint de dashboard consolidado e grafico de emprestimos por status).
 
 Entregas validadas (Dia 1):
 - Backend API operacional (Express + TypeScript)
@@ -54,6 +54,10 @@ Entregas validadas (Dia 4):
 - Pontualidade de contribuicoes calculada a partir do dia de cobranca do grupo (`GroupSettings.collectionDay`); pontualidade de emprestimos calculada ao quitar o valor total antes ou depois da data de vencimento
 - Interface de contribuicoes: registo de pagamento (admin/tesoureiro podem registar por qualquer membro; membro comum so registra a propria contribuicao)
 - Badge de confianca na aba Membros de cada grupo
+
+Entregas validadas (Dia 5):
+- Endpoint `GET /api/dashboard` consolidado no backend, substituindo a agregacao N+1 que o frontend fazia (uma chamada a `/groups` mais uma chamada a `/loans/group/:id` por grupo)
+- Grafico "Emprestimos por Status" no dashboard (pendente/aprovado/rejeitado/pago), com paleta de cores validada para contraste e daltonismo (`node scripts/validate_palette.js`, skill dataviz)
 
 ## Estrutura
 
@@ -123,7 +127,7 @@ npm run dev
 - Email: {privado}
 - Senha: {privado}
 
-## Proximo Marco (Dia 5)
+## Proximo Marco (Dia 6)
 
 - Relatorios (`/reports`) com dados reais (hoje e apenas um placeholder "modulo em preparacao")
-- Consolidar graficos do dashboard (ja existe um grafico de contribuicao por grupo; falta cobrir emprestimos e evolucao no tempo)
+- Responsividade e testes, conforme `docs/roadmap-7-days.md`

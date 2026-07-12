@@ -91,4 +91,5 @@ export type DashboardStats = {
   activeLoans: number;
   groupsCount: number;
   chartData: Array<{ name: string; value: number }>;
+  loansByStatus: Array<{ status: "PENDING" | "APPROVED" | "REJECTED" | "PAID"; count: number }>;
 };
