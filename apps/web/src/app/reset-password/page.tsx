@@ -3,12 +3,15 @@
 import { FormEvent, Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useLanguage } from "@/hooks/useLanguage";
+import { LanguageSwitcher } from "@/components";
 import { resetPassword } from "@/services/auth";
 
 function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token") || "";
+  const { t } = useLanguage();
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -22,17 +25,17 @@ function ResetPasswordForm() {
     setErrorMessage("");
 
     if (!token) {
-      setErrorMessage("Token de recuperacao ausente ou invalido. Solicite um novo link.");
+      setErrorMessage(t("auth.resetPassword.missingToken"));
       return;
     }
 
     if (password.length < 6) {
-      setErrorMessage("A palavra-passe deve ter no minimo 6 caracteres.");
+      setErrorMessage(t("auth.resetPassword.passwordTooShort"));
       return;
     }
 
     if (password !== confirmPassword) {
-      setErrorMessage("As palavras-passe nao coincidem.");
+      setErrorMessage(t("auth.resetPassword.passwordMismatch"));
       return;
     }
 
@@ -43,7 +46,7 @@ function ResetPasswordForm() {
       setSuccess(true);
       setTimeout(() => router.push("/"), 2000);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Erro ao redefinir a palavra-passe.");
+      setErrorMessage(error instanceof Error ? error.message : t("auth.resetPassword.genericError"));
     } finally {
       setIsLoading(false);
     }
@@ -54,25 +57,29 @@ function ResetPasswordForm() {
       <div className="relative p-6 sm:p-8 md:p-10">
         <div className="pointer-events-none absolute -left-16 -top-16 h-44 w-44 rounded-full bg-[#ffce00]/18" />
 
+        <div className="flex justify-end">
+          <LanguageSwitcher variant="dark" />
+        </div>
+
         <header className="mx-auto flex flex-col items-center gap-2 text-center">
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#ffce00]">kixipay</p>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Definir nova senha</h1>
-          <p className="text-sm text-[#d8cfb2]">Escolha uma nova palavra-passe para a sua conta.</p>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t("auth.resetPassword.title")}</h1>
+          <p className="text-sm text-[#d8cfb2]">{t("auth.resetPassword.subtitle")}</p>
         </header>
 
         {!token ? (
           <div className="mt-8 space-y-4 text-center">
             <p className="rounded-lg border border-[#c8102e]/70 bg-[#c8102e]/15 px-4 py-3 text-sm text-[#ffb8c4]">
-              Este link parece invalido ou incompleto.
+              {t("auth.resetPassword.invalidLink")}
             </p>
             <Link href="/forgot-password" className="inline-block text-sm font-semibold text-[#ffce00] hover:underline">
-              Solicitar novo link
+              {t("auth.resetPassword.requestNewLink")}
             </Link>
           </div>
         ) : success ? (
           <div className="mt-8 space-y-4 text-center">
             <p className="rounded-lg border border-[#3f7d4a]/60 bg-[#204426]/40 px-4 py-3 text-sm text-[#c8f0cf]">
-              Palavra-passe atualizada com sucesso. Redirecionando para o login...
+              {t("auth.resetPassword.successMessage")}
             </p>
           </div>
         ) : (
@@ -80,14 +87,14 @@ function ResetPasswordForm() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label htmlFor="password" className="text-sm text-[#ffce00]">
-                  Nova palavra-passe
+                  {t("auth.resetPassword.newPassword")}
                 </label>
                 <button
                   type="button"
                   onClick={() => setShowPassword((value) => !value)}
                   className="text-xs text-[#d8cfb2] transition hover:text-[#ffce00]"
                 >
-                  {showPassword ? "Ocultar" : "Mostrar"}
+                  {showPassword ? t("auth.login.hide") : t("auth.login.show")}
                 </button>
               </div>
               <input
@@ -105,7 +112,7 @@ function ResetPasswordForm() {
 
             <div className="space-y-2">
               <label htmlFor="confirmPassword" className="text-sm text-[#ffce00]">
-                Confirmar nova palavra-passe
+                {t("auth.resetPassword.confirmNewPassword")}
               </label>
               <input
                 id="confirmPassword"
@@ -120,7 +127,7 @@ function ResetPasswordForm() {
               />
             </div>
 
-            <p className="text-xs text-[#d8cfb2]">Use no minimo 6 caracteres.</p>
+            <p className="text-xs text-[#d8cfb2]">{t("auth.resetPassword.hint")}</p>
 
             {errorMessage ? (
               <p className="rounded-lg border border-[#c8102e]/70 bg-[#c8102e]/15 px-3 py-2 text-xs text-[#ffb8c4]">
@@ -133,7 +140,7 @@ function ResetPasswordForm() {
               disabled={isLoading}
               className="h-12 w-full rounded-xl bg-[#c8102e] text-sm font-semibold tracking-wide text-[#fbf7e6] transition hover:bg-[#a40d25] disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {isLoading ? "A atualizar..." : "Redefinir palavra-passe"}
+              {isLoading ? t("auth.resetPassword.submitting") : t("auth.resetPassword.submit")}
             </button>
           </form>
         )}

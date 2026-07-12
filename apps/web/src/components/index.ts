@@ -5,6 +5,7 @@ export * from "@/components/Card";
 export * from "@/components/EmptyState";
 export * from "@/components/Header";
 export * from "@/components/Input";
+export * from "@/components/LanguageSwitcher";
 export * from "@/components/Loading";
 export * from "@/components/Modal";
 export * from "@/components/Select";

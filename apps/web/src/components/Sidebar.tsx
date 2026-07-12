@@ -14,16 +14,18 @@ import {
   X,
 } from "lucide-react";
 import { AuthUser } from "@/types/domain";
+import { useLanguage } from "@/hooks/useLanguage";
+import { TranslationKey } from "@/i18n/types";
 import { initials } from "@/utils/format";
 import { Avatar } from "@/components/Avatar";
 
-const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/groups", label: "Meus Grupos", icon: Users },
-  { href: "/contributions", label: "Contribuicoes", icon: Wallet },
-  { href: "/loans", label: "Emprestimos", icon: HandCoins },
-  { href: "/reports", label: "Relatorios", icon: BarChart3 },
-  { href: "/settings", label: "Configuracoes", icon: Settings },
+const navItems: Array<{ href: string; labelKey: TranslationKey; icon: typeof LayoutDashboard }> = [
+  { href: "/dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard },
+  { href: "/groups", labelKey: "nav.groups", icon: Users },
+  { href: "/contributions", labelKey: "nav.contributions", icon: Wallet },
+  { href: "/loans", labelKey: "nav.loans", icon: HandCoins },
+  { href: "/reports", labelKey: "nav.reports", icon: BarChart3 },
+  { href: "/settings", labelKey: "nav.settings", icon: Settings },
 ];
 
 type SidebarProps = {
@@ -35,6 +37,7 @@ type SidebarProps = {
 
 export const Sidebar = ({ user, open, onClose, onLogout }: SidebarProps) => {
   const pathname = usePathname();
+  const { t } = useLanguage();
 
   return (
     <>
@@ -46,8 +49,8 @@ export const Sidebar = ({ user, open, onClose, onLogout }: SidebarProps) => {
       >
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-[#ffce00]">kixipay</p>
-            <h2 className="mt-1 text-xl font-bold">Painel Financeiro</h2>
+            <p className="text-xs uppercase tracking-[0.2em] text-[#ffce00]">{t("nav.brand")}</p>
+            <h2 className="mt-1 text-xl font-bold">{t("nav.panelTitle")}</h2>
           </div>
           <button type="button" className="rounded-lg p-1 hover:bg-[#8c162b] lg:hidden" onClick={onClose}>
             <X size={18} />
@@ -62,7 +65,7 @@ export const Sidebar = ({ user, open, onClose, onLogout }: SidebarProps) => {
           />
           <div>
             <p className="text-sm font-semibold">{user.firstName}</p>
-            <p className="text-xs text-[#f4dfa0]">Conta ativa</p>
+            <p className="text-xs text-[#f4dfa0]">{t("nav.accountActive")}</p>
           </div>
         </div>
 
@@ -84,7 +87,7 @@ export const Sidebar = ({ user, open, onClose, onLogout }: SidebarProps) => {
                 onClick={onClose}
               >
                 <Icon size={18} />
-                <span>{item.label}</span>
+                <span>{t(item.labelKey)}</span>
               </Link>
             );
           })}
@@ -96,7 +99,7 @@ export const Sidebar = ({ user, open, onClose, onLogout }: SidebarProps) => {
           className="mt-10 flex w-full items-center justify-center gap-2 rounded-xl border border-[#e7be57]/40 bg-[#8c162b] px-4 py-2 text-sm font-semibold text-[#ffe9ab] transition hover:bg-[#aa1c34]"
         >
           <LogOut size={16} />
-          Logout
+          {t("nav.logout")}
         </button>
       </aside>
 

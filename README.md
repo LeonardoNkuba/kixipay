@@ -59,6 +59,11 @@ Entregas validadas (Dia 5):
 - Endpoint `GET /api/dashboard` consolidado no backend, substituindo a agregacao N+1 que o frontend fazia (uma chamada a `/groups` mais uma chamada a `/loans/group/:id` por grupo)
 - Grafico "Emprestimos por Status" no dashboard (pendente/aprovado/rejeitado/pago), com paleta de cores validada para contraste e daltonismo (`node scripts/validate_palette.js`, skill dataviz)
 
+Internacionalizacao (fora do cronograma de 7 dias, a pedido):
+- Interface do `apps/web` traduzida para portugues, ingles, espanhol e frances (`apps/web/src/i18n/`)
+- Troca de idioma client-side (sem rotas por locale), persistida em `localStorage`, disponivel no ecra de login/registo e no cabecalho/definicoes da aplicacao
+- Mensagens de erro devolvidas pela API continuam em portugues (fora deste escopo; exigiria codigos de erro em vez de texto livre)
+
 ## Estrutura
 
 ```text

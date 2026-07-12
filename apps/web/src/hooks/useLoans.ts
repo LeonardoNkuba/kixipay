@@ -3,12 +3,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "@/services/api";
 import { addLoanPayment, approveLoan, createLoan, CreateLoanInput } from "@/services/loans";
+import { useLanguage } from "@/hooks/useLanguage";
 import { Loan } from "@/types/domain";
 
 export const useLoans = (token: string | null, groupId?: string) => {
   const [loans, setLoans] = useState<Loan[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const { t } = useLanguage();
 
   const refresh = useCallback(async () => {
     if (!token || !groupId) {
@@ -24,11 +26,11 @@ export const useLoans = (token: string | null, groupId?: string) => {
       const data = await apiFetch<Loan[]>(`/loans/group/${groupId}`, { method: "GET" }, token);
       setLoans(data);
     } catch {
-      setError("Erro ao carregar emprestimos.");
+      setError(t("loansPage.loadError"));
     } finally {
       setIsLoading(false);
     }
-  }, [groupId, token]);
+  }, [groupId, token, t]);
 
   useEffect(() => {
     void refresh();
@@ -37,40 +39,40 @@ export const useLoans = (token: string | null, groupId?: string) => {
   const requestLoan = useCallback(
     async (input: CreateLoanInput) => {
       if (!token) {
-        throw new Error("Sessao expirada.");
+        throw new Error(t("common.sessionExpired"));
       }
 
       const loan = await createLoan(token, input);
       await refresh();
       return loan;
     },
-    [token, refresh],
+    [token, refresh, t],
   );
 
   const decideLoan = useCallback(
     async (loanId: string, approved: boolean) => {
       if (!token) {
-        throw new Error("Sessao expirada.");
+        throw new Error(t("common.sessionExpired"));
       }
 
       const loan = await approveLoan(token, loanId, approved);
       await refresh();
       return loan;
     },
-    [token, refresh],
+    [token, refresh, t],
   );
 
   const payLoan = useCallback(
     async (loanId: string, amount: number) => {
       if (!token) {
-        throw new Error("Sessao expirada.");
+        throw new Error(t("common.sessionExpired"));
       }
 
       const payment = await addLoanPayment(token, loanId, { amount });
       await refresh();
       return payment;
     },
-    [token, refresh],
+    [token, refresh, t],
   );
 
   return {

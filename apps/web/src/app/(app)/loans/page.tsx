@@ -4,13 +4,22 @@ import { useEffect, useState } from "react";
 import { Badge, Card, EmptyState, Loading, Select, Table } from "@/components";
 import { useAuth } from "@/hooks/useAuth";
 import { useGroups } from "@/hooks/useGroups";
+import { useLanguage } from "@/hooks/useLanguage";
 import { useLoans } from "@/hooks/useLoans";
 import { formatCurrency, formatDate } from "@/utils/format";
 
 export default function LoansPage() {
   const { token } = useAuth();
   const { groups } = useGroups(token);
+  const { t } = useLanguage();
   const [selectedGroupId, setSelectedGroupId] = useState("");
+
+  const statusLabel: Record<string, string> = {
+    PENDING: t("common.loanStatusPending"),
+    APPROVED: t("common.loanStatusApproved"),
+    REJECTED: t("common.loanStatusRejected"),
+    PAID: t("common.loanStatusPaid"),
+  };
 
   useEffect(() => {
     if (!selectedGroupId && groups.length) {
@@ -23,11 +32,11 @@ export default function LoansPage() {
 
   return (
     <div className="space-y-4">
-      <Card title="Emprestimos" subtitle="Controle de solicitacoes, aprovacoes e pagamentos">
+      <Card title={t("loansPage.title")} subtitle={t("loansPage.subtitle")}>
         {groups.length ? (
           <div className="max-w-sm">
             <Select
-              label="Grupo"
+              label={t("loansPage.group")}
               value={selectedGroupId}
               onChange={(event) => setSelectedGroupId(event.target.value)}
             >
@@ -39,14 +48,25 @@ export default function LoansPage() {
             </Select>
           </div>
         ) : (
-          <EmptyState title="Sem grupos" description="Crie um grupo para gerir emprestimos." />
+          <EmptyState
+            title={t("loansPage.emptyGroupsTitle")}
+            description={t("loansPage.emptyGroupsDescription")}
+          />
         )}
       </Card>
 
       {isLoading ? (
-        <Loading message="Carregando emprestimos..." />
+        <Loading message={t("loansPage.loadingMessage")} />
       ) : loans.length ? (
-        <Table headers={["Valor", "Juros", "Status", "Vencimento", "Criado em"]}>
+        <Table
+          headers={[
+            t("loansPage.tableValue"),
+            t("loansPage.tableInterest"),
+            t("loansPage.tableStatus"),
+            t("loansPage.tableDue"),
+            t("loansPage.tableCreated"),
+          ]}
+        >
           {loans.map((loan) => (
             <tr key={loan.id}>
               <td className="px-4 py-3">{formatCurrency(Number(loan.amount), selectedGroup?.currency || "AOA")}</td>
@@ -63,7 +83,7 @@ export default function LoansPage() {
                           : "info"
                   }
                 >
-                  {loan.status}
+                  {statusLabel[loan.status]}
                 </Badge>
               </td>
               <td className="px-4 py-3">{formatDate(loan.dueDate)}</td>
@@ -73,7 +93,12 @@ export default function LoansPage() {
         </Table>
       ) : (
         groups.length > 0 &&
-        selectedGroupId && <EmptyState title="Sem emprestimos" description="Nenhum emprestimo no grupo selecionado." />
+        selectedGroupId && (
+          <EmptyState
+            title={t("loansPage.emptyLoansTitle")}
+            description={t("loansPage.emptyLoansDescription")}
+          />
+        )
       )}
     </div>
   );

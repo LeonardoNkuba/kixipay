@@ -1,12 +1,17 @@
+"use client";
+
 import { Card, EmptyState } from "@/components";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export default function ReportsPage() {
+  const { t } = useLanguage();
+
   return (
     <div className="space-y-4">
-      <Card title="Relatorios" subtitle="Visoes consolidadas do seu grupo financeiro">
+      <Card title={t("reportsPage.title")} subtitle={t("reportsPage.subtitle")}>
         <EmptyState
-          title="Modulo em preparacao"
-          description="Nesta fase do MVP, os relatorios avancados serao implementados apos consolidar contribuicoes e emprestimos."
+          title={t("reportsPage.emptyTitle")}
+          description={t("reportsPage.emptyDescription")}
         />
       </Card>
     </div>

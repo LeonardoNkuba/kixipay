@@ -15,14 +15,8 @@ import {
 import { Card, EmptyState, Loading, StatCard } from "@/components";
 import { useAuth } from "@/hooks/useAuth";
 import { useDashboard } from "@/hooks/useDashboard";
+import { useLanguage } from "@/hooks/useLanguage";
 import { formatCurrency } from "@/utils/format";
-
-const loanStatusLabel: Record<string, string> = {
-  PENDING: "Pendente",
-  APPROVED: "Aprovado",
-  REJECTED: "Rejeitado",
-  PAID: "Pago",
-};
 
 const loanStatusColor: Record<string, string> = {
   PENDING: "#B98900",
@@ -34,6 +28,14 @@ const loanStatusColor: Record<string, string> = {
 export default function DashboardPage() {
   const { token } = useAuth();
   const { stats, isLoading, error, refresh } = useDashboard(token);
+  const { t } = useLanguage();
+
+  const loanStatusLabel: Record<string, string> = {
+    PENDING: t("common.loanStatusPending"),
+    APPROVED: t("common.loanStatusApproved"),
+    REJECTED: t("common.loanStatusRejected"),
+    PAID: t("common.loanStatusPaid"),
+  };
 
   const loanChartData = stats.loansByStatus.map((item) => ({
     status: item.status,
@@ -43,15 +45,15 @@ export default function DashboardPage() {
   const totalLoans = loanChartData.reduce((acc, item) => acc + item.count, 0);
 
   if (isLoading) {
-    return <Loading message="Carregando indicadores do dashboard..." />;
+    return <Loading message={t("dashboard.loadingMessage")} />;
   }
 
   if (error) {
     return (
       <EmptyState
-        title="Erro ao carregar dados"
+        title={t("common.errorTitle")}
         description={error}
-        actionLabel="Tentar novamente"
+        actionLabel={t("common.tryAgain")}
         onAction={refresh}
       />
     );
@@ -61,32 +63,32 @@ export default function DashboardPage() {
     <div className="space-y-5">
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
-          title="Saldo Total"
+          title={t("dashboard.statBalance")}
           value={formatCurrency(stats.totalBalance)}
-          caption="Estimativa por contribuicoes ativas"
+          caption={t("dashboard.statBalanceCaption")}
           icon={<WalletCards size={20} />}
         />
         <StatCard
-          title="Total de Membros"
+          title={t("dashboard.statMembers")}
           value={String(stats.totalMembers)}
-          caption="Membros ativos em todos os grupos"
+          caption={t("dashboard.statMembersCaption")}
           icon={<Users size={20} />}
         />
         <StatCard
-          title="Contribuicoes do Mes"
+          title={t("dashboard.statContributions")}
           value={formatCurrency(stats.monthlyContributions)}
-          caption="Soma mensal prevista"
+          caption={t("dashboard.statContributionsCaption")}
           icon={<Coins size={20} />}
         />
         <StatCard
-          title="Emprestimos Ativos"
+          title={t("dashboard.statLoans")}
           value={String(stats.activeLoans)}
-          caption="Pendentes ou aprovados"
+          caption={t("dashboard.statLoansCaption")}
           icon={<HandCoins size={20} />}
         />
       </section>
 
-      <Card title="Contribuicao por Grupo" subtitle="Visao rapida para decisoes semanais">
+      <Card title={t("dashboard.chartTitle")} subtitle={t("dashboard.chartSubtitle")}>
         {stats.chartData.length ? (
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
@@ -101,13 +103,13 @@ export default function DashboardPage() {
           </div>
         ) : (
           <EmptyState
-            title="Sem grupos para analisar"
-            description="Crie seu primeiro grupo para visualizar os indicadores no dashboard."
+            title={t("dashboard.emptyGroupsTitle")}
+            description={t("dashboard.emptyGroupsDescription")}
           />
         )}
       </Card>
 
-      <Card title="Emprestimos por Status" subtitle="Distribuicao em todos os seus grupos">
+      <Card title={t("dashboard.loanChartTitle")} subtitle={t("dashboard.loanChartSubtitle")}>
         {totalLoans ? (
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
@@ -127,8 +129,8 @@ export default function DashboardPage() {
           </div>
         ) : (
           <EmptyState
-            title="Sem emprestimos"
-            description="Ainda nao ha emprestimos registados nos seus grupos."
+            title={t("dashboard.emptyLoansTitle")}
+            description={t("dashboard.emptyLoansDescription")}
           />
         )}
       </Card>

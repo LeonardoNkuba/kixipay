@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { getDashboardStats } from "@/services/dashboard";
+import { useLanguage } from "@/hooks/useLanguage";
 import { DashboardStats } from "@/types/domain";
 
 const initialState: DashboardStats = {
@@ -18,6 +19,7 @@ export const useDashboard = (token: string | null) => {
   const [stats, setStats] = useState<DashboardStats>(initialState);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const { t } = useLanguage();
 
   const refresh = useCallback(async () => {
     if (!token) {
@@ -33,11 +35,11 @@ export const useDashboard = (token: string | null) => {
       const payload = await getDashboardStats(token);
       setStats(payload);
     } catch {
-      setError("Erro ao carregar indicadores.");
+      setError(t("dashboard.loadError"));
     } finally {
       setIsLoading(false);
     }
-  }, [token]);
+  }, [token, t]);
 
   useEffect(() => {
     void refresh();

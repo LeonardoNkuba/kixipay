@@ -21,18 +21,13 @@ import {
   Table,
 } from "@/components";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/hooks/useLanguage";
 import { useLoans } from "@/hooks/useLoans";
 import { useMembers } from "@/hooks/useMembers";
 import { formatCurrency, formatDate } from "@/utils/format";
 
 type Tab = "resumo" | "membros" | "contribuicoes" | "emprestimos";
 type Role = "ADMIN" | "TREASURER" | "MEMBER";
-
-const statusLabel: Record<Group["status"], string> = {
-  ACTIVE: "Ativo",
-  PAUSED: "Pausado",
-  CLOSED: "Encerrado",
-};
 
 const statusTone: Record<Group["status"], "success" | "warning" | "danger"> = {
   ACTIVE: "success",
@@ -44,6 +39,39 @@ export default function GroupDetailPage() {
   const params = useParams<{ groupId: string }>();
   const groupId = params.groupId;
   const { token, user } = useAuth();
+  const { t } = useLanguage();
+
+  const statusLabel: Record<Group["status"], string> = {
+    ACTIVE: t("groupDetail.statusActive"),
+    PAUSED: t("groupDetail.statusPaused"),
+    CLOSED: t("groupDetail.statusClosed"),
+  };
+
+  const tabLabel: Record<Tab, string> = {
+    resumo: t("groupDetail.tabSummary"),
+    membros: t("groupDetail.tabMembers"),
+    contribuicoes: t("groupDetail.tabContributions"),
+    emprestimos: t("groupDetail.tabLoans"),
+  };
+
+  const roleLabel: Record<Role, string> = {
+    ADMIN: t("common.roleAdmin"),
+    TREASURER: t("common.roleTreasurer"),
+    MEMBER: t("common.roleMember"),
+  };
+
+  const contributionStatusLabel: Record<string, string> = {
+    PENDING: t("common.contributionStatusPending"),
+    PAID: t("common.contributionStatusPaid"),
+    LATE: t("common.contributionStatusLate"),
+  };
+
+  const loanStatusLabel: Record<string, string> = {
+    PENDING: t("common.loanStatusPending"),
+    APPROVED: t("common.loanStatusApproved"),
+    REJECTED: t("common.loanStatusRejected"),
+    PAID: t("common.loanStatusPaid"),
+  };
 
   const [group, setGroup] = useState<Group | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -118,8 +146,9 @@ export default function GroupDetailPage() {
 
     getGroupById(token, groupId)
       .then((data) => setGroup(data))
-      .catch((err) => setError(err instanceof Error ? err.message : "Erro ao carregar grupo."))
+      .catch((err) => setError(err instanceof Error ? err.message : t("groupDetail.loadError")))
       .finally(() => setIsLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupId, token]);
 
   const loadContributions = () => {
@@ -192,14 +221,12 @@ export default function GroupDetailPage() {
 
     try {
       await createInvitation(token, { groupId, email: memberEmail, role: memberRole });
-      setInviteMessage(
-        "Convite gerado. Modo demo: verifique o console/terminal da API para encontrar o link.",
-      );
+      setInviteMessage(t("groupDetail.inviteSentDemo"));
       setMemberEmail("");
       setMemberRole("MEMBER");
       loadInvitations();
     } catch (error) {
-      setInviteError(error instanceof Error ? error.message : "Erro ao gerar convite.");
+      setInviteError(error instanceof Error ? error.message : t("groupDetail.genericInviteError"));
     } finally {
       setIsInviting(false);
     }
@@ -239,7 +266,7 @@ export default function GroupDetailPage() {
       await reloadGroup();
       setIsEditOpen(false);
     } catch (err) {
-      setEditError(err instanceof Error ? err.message : "Erro ao atualizar grupo.");
+      setEditError(err instanceof Error ? err.message : t("groupDetail.updateError"));
     } finally {
       setIsSavingEdit(false);
     }
@@ -252,10 +279,10 @@ export default function GroupDetailPage() {
 
     const confirmMessage =
       status === "CLOSED"
-        ? "Encerrar este grupo? Membros nao poderao mais registar novas contribuicoes ou emprestimos."
+        ? t("groupDetail.closeConfirm")
         : status === "PAUSED"
-          ? "Pausar este grupo?"
-          : "Reativar este grupo?";
+          ? t("groupDetail.pauseConfirm")
+          : t("groupDetail.reactivateConfirm");
 
     if (!window.confirm(confirmMessage)) {
       return;
@@ -266,7 +293,7 @@ export default function GroupDetailPage() {
       await updateGroupStatus(token, groupId, status);
       await reloadGroup();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao atualizar status do grupo.");
+      setError(err instanceof Error ? err.message : t("groupDetail.statusChangeError"));
     } finally {
       setIsChangingStatus(false);
     }
@@ -282,7 +309,7 @@ export default function GroupDetailPage() {
       await updateMemberRole(token, groupId, membershipId, role);
       await reloadGroup();
     } catch (err) {
-      setMemberActionError(err instanceof Error ? err.message : "Erro ao alterar cargo.");
+      setMemberActionError(err instanceof Error ? err.message : t("groupDetail.roleChangeError"));
     }
   };
 
@@ -291,7 +318,7 @@ export default function GroupDetailPage() {
       return;
     }
 
-    if (!window.confirm(`Remover ${name} do grupo?`)) {
+    if (!window.confirm(t("groupDetail.removeConfirm", { name }))) {
       return;
     }
 
@@ -300,7 +327,7 @@ export default function GroupDetailPage() {
       await removeMember(token, groupId, membershipId);
       await reloadGroup();
     } catch (err) {
-      setMemberActionError(err instanceof Error ? err.message : "Erro ao remover membro.");
+      setMemberActionError(err instanceof Error ? err.message : t("groupDetail.removeError"));
     }
   };
 
@@ -325,7 +352,7 @@ export default function GroupDetailPage() {
       setLoanAmount("");
       setLoanReason("");
     } catch (err) {
-      setLoanError(err instanceof Error ? err.message : "Erro ao solicitar emprestimo.");
+      setLoanError(err instanceof Error ? err.message : t("groupDetail.loanRequestError"));
     } finally {
       setIsSavingLoan(false);
     }
@@ -336,7 +363,7 @@ export default function GroupDetailPage() {
     try {
       await decideLoan(loanId, approved);
     } catch (err) {
-      setLoanActionError(err instanceof Error ? err.message : "Erro ao decidir emprestimo.");
+      setLoanActionError(err instanceof Error ? err.message : t("groupDetail.loanDecisionError"));
     }
   };
 
@@ -354,7 +381,7 @@ export default function GroupDetailPage() {
       setPayingLoanId(null);
       setPaymentAmount("");
     } catch (err) {
-      setLoanActionError(err instanceof Error ? err.message : "Erro ao registar pagamento.");
+      setLoanActionError(err instanceof Error ? err.message : t("groupDetail.paymentError"));
     } finally {
       setIsSavingPayment(false);
     }
@@ -392,22 +419,22 @@ export default function GroupDetailPage() {
       await loadContributions();
       await reloadGroup();
     } catch (err) {
-      setContribError(err instanceof Error ? err.message : "Erro ao registar contribuicao.");
+      setContribError(err instanceof Error ? err.message : t("groupDetail.contributionError"));
     } finally {
       setIsSavingContrib(false);
     }
   };
 
   if (isLoading) {
-    return <Loading message="Carregando detalhes do grupo..." />;
+    return <Loading message={t("groupDetail.loadingGroup")} />;
   }
 
   if (error || !group) {
     return (
       <EmptyState
-        title="Nao foi possivel abrir o grupo"
-        description={error || "Grupo nao encontrado."}
-        actionLabel="Voltar para Grupos"
+        title={t("groupDetail.notFoundTitle")}
+        description={error || t("groupDetail.notFoundDescription")}
+        actionLabel={t("groupDetail.backToGroups")}
         onAction={() => {
           window.location.href = "/groups";
         }}
@@ -419,16 +446,16 @@ export default function GroupDetailPage() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-center gap-3">
         <Link href="/groups" className="text-sm font-semibold text-[#6f101f] hover:underline">
-          Voltar para grupos
+          {t("groupDetail.back")}
         </Link>
         <h1 className="text-2xl font-bold text-[#2b2105]">{group.name}</h1>
-        <Badge tone="info">{group.cycleType === "MONTHLY" ? "Mensal" : "Semanal"}</Badge>
+        <Badge tone="info">{group.cycleType === "MONTHLY" ? t("common.monthly") : t("common.weekly")}</Badge>
         <Badge tone={statusTone[group.status]}>{statusLabel[group.status]}</Badge>
 
         {isAdmin ? (
           <div className="ml-auto flex flex-wrap gap-2">
             <Button variant="ghost" onClick={openEditModal}>
-              Editar grupo
+              {t("groupDetail.edit")}
             </Button>
             {group.status !== "CLOSED" ? (
               <Button
@@ -436,16 +463,16 @@ export default function GroupDetailPage() {
                 disabled={isChangingStatus}
                 onClick={() => onChangeStatus(group.status === "PAUSED" ? "ACTIVE" : "PAUSED")}
               >
-                {group.status === "PAUSED" ? "Reativar" : "Pausar"}
+                {group.status === "PAUSED" ? t("groupDetail.reactivate") : t("groupDetail.pause")}
               </Button>
             ) : null}
             {group.status !== "CLOSED" ? (
               <Button variant="ghost" disabled={isChangingStatus} onClick={() => onChangeStatus("CLOSED")}>
-                Encerrar grupo
+                {t("groupDetail.close")}
               </Button>
             ) : (
               <Button variant="ghost" disabled={isChangingStatus} onClick={() => onChangeStatus("ACTIVE")}>
-                Reativar grupo
+                {t("groupDetail.reactivateGroup")}
               </Button>
             )}
           </div>
@@ -455,15 +482,15 @@ export default function GroupDetailPage() {
       <Card>
         <div className="grid gap-3 sm:grid-cols-3">
           <div>
-            <p className="text-xs uppercase tracking-[0.14em] text-[#8a7226]">Saldo estimado</p>
+            <p className="text-xs uppercase tracking-[0.14em] text-[#8a7226]">{t("groupDetail.estimatedBalance")}</p>
             <p className="mt-1 text-xl font-bold text-[#2a2004]">{formatCurrency(estimatedBalance, group.currency)}</p>
           </div>
           <div>
-            <p className="text-xs uppercase tracking-[0.14em] text-[#8a7226]">Membros ativos</p>
+            <p className="text-xs uppercase tracking-[0.14em] text-[#8a7226]">{t("groupDetail.activeMembers")}</p>
             <p className="mt-1 text-xl font-bold text-[#2a2004]">{members.filter((item) => item.isActive).length}</p>
           </div>
           <div>
-            <p className="text-xs uppercase tracking-[0.14em] text-[#8a7226]">Contribuicao</p>
+            <p className="text-xs uppercase tracking-[0.14em] text-[#8a7226]">{t("groupDetail.contribution")}</p>
             <p className="mt-1 text-xl font-bold text-[#2a2004]">
               {formatCurrency(Number(group.monthlyContribution), group.currency)}
             </p>
@@ -474,42 +501,42 @@ export default function GroupDetailPage() {
       <div className="flex flex-wrap gap-2">
         {(["resumo", "membros", "contribuicoes", "emprestimos"] as Tab[]).map((item) => (
           <Button key={item} variant={tab === item ? "primary" : "ghost"} onClick={() => setTab(item)}>
-            {item[0].toUpperCase() + item.slice(1)}
+            {tabLabel[item]}
           </Button>
         ))}
       </div>
 
       {tab === "resumo" ? (
-        <Card title="Resumo" subtitle={group.description || "Sem descricao"}>
+        <Card title={t("groupDetail.summaryTitle")} subtitle={group.description || t("groupDetail.noDescription")}>
           <p className="text-sm text-[#584713]">
-            Grupo iniciado em {formatDate(group.startDate)}. Esta area centraliza membros, contribuicoes e emprestimos.
+            {t("groupDetail.summaryBody", { date: formatDate(group.startDate) })}
           </p>
         </Card>
       ) : null}
 
       {tab === "membros" ? (
         <div className="space-y-4">
-          <Card title="Convidar membro" subtitle="Gera um convite por email para entrar no grupo">
+          <Card title={t("groupDetail.inviteTitle")} subtitle={t("groupDetail.inviteSubtitle")}>
             <form className="grid gap-3 sm:grid-cols-3" onSubmit={onAddMember}>
               <Input
-                label="Email"
+                label={t("groupDetail.email")}
                 type="email"
                 value={memberEmail}
                 onChange={(event) => setMemberEmail(event.target.value)}
                 required
               />
               <Select
-                label="Cargo"
+                label={t("groupDetail.role")}
                 value={memberRole}
                 onChange={(event) => setMemberRole(event.target.value as Role)}
               >
-                <option value="MEMBER">MEMBER</option>
-                <option value="TREASURER">TREASURER</option>
-                <option value="ADMIN">ADMIN</option>
+                <option value="MEMBER">{roleLabel.MEMBER}</option>
+                <option value="TREASURER">{roleLabel.TREASURER}</option>
+                <option value="ADMIN">{roleLabel.ADMIN}</option>
               </Select>
               <div className="flex items-end">
                 <Button type="submit" className="w-full" disabled={isInviting}>
-                  {isInviting ? "Enviando..." : "Enviar convite"}
+                  {isInviting ? t("groupDetail.sending") : t("groupDetail.sendInvite")}
                 </Button>
               </div>
             </form>
@@ -533,12 +560,19 @@ export default function GroupDetailPage() {
           ) : null}
 
           <Table
-            headers={["Nome", "Cargo", "Entrou em", "Status", "Confianca", isAdmin ? "Acoes" : ""]}
+            headers={[
+              t("groupDetail.membersTableName"),
+              t("groupDetail.membersTableRole"),
+              t("groupDetail.membersTableJoined"),
+              t("groupDetail.membersTableStatus"),
+              t("groupDetail.membersTableTrust"),
+              isAdmin ? t("groupDetail.membersTableActions") : "",
+            ]}
           >
             {(group.memberships || []).map((membership) => {
               const name = membership.user
                 ? `${membership.user.firstName} ${membership.user.lastName}`
-                : "Membro";
+                : t("groupDetail.member");
               const isSelf = membership.userId === user?.id;
               const trustScore = membership.trustScore;
 
@@ -554,18 +588,18 @@ export default function GroupDetailPage() {
                         }
                         className="h-9"
                       >
-                        <option value="MEMBER">MEMBER</option>
-                        <option value="TREASURER">TREASURER</option>
-                        <option value="ADMIN">ADMIN</option>
+                        <option value="MEMBER">{roleLabel.MEMBER}</option>
+                        <option value="TREASURER">{roleLabel.TREASURER}</option>
+                        <option value="ADMIN">{roleLabel.ADMIN}</option>
                       </Select>
                     ) : (
-                      membership.role
+                      roleLabel[membership.role]
                     )}
                   </td>
                   <td className="px-4 py-3">{formatDate(membership.joinedAt)}</td>
                   <td className="px-4 py-3">
                     <Badge tone={membership.isActive ? "success" : "warning"}>
-                      {membership.isActive ? "Ativo" : "Inativo"}
+                      {membership.isActive ? t("groupDetail.active") : t("groupDetail.inactive")}
                     </Badge>
                   </td>
                   <td className="px-4 py-3">
@@ -584,7 +618,7 @@ export default function GroupDetailPage() {
                         })`}
                       </Badge>
                     ) : (
-                      <Badge tone="neutral">Sem historico</Badge>
+                      <Badge tone="neutral">{t("groupDetail.noHistory")}</Badge>
                     )}
                   </td>
                   {isAdmin ? (
@@ -593,9 +627,9 @@ export default function GroupDetailPage() {
                         <Button
                           variant="ghost"
                           className="h-8 px-2 text-xs"
-                          onClick={() => onRemoveMember(membership.id, isSelf ? "voce" : name)}
+                          onClick={() => onRemoveMember(membership.id, isSelf ? t("groupDetail.you") : name)}
                         >
-                          Remover
+                          {t("groupDetail.removeMember")}
                         </Button>
                       ) : null}
                     </td>
@@ -606,14 +640,20 @@ export default function GroupDetailPage() {
           </Table>
 
           {isInvitationsLoading ? (
-            <Loading message="Carregando convites..." />
+            <Loading message={t("groupDetail.loadingInvites")} />
           ) : invitations.length ? (
-            <Card title="Convites pendentes">
-              <Table headers={["Email", "Cargo", "Expira em"]}>
+            <Card title={t("groupDetail.pendingInvitesTitle")}>
+              <Table
+                headers={[
+                  t("groupDetail.invitesTableEmail"),
+                  t("groupDetail.invitesTableRole"),
+                  t("groupDetail.invitesTableExpires"),
+                ]}
+              >
                 {invitations.map((invitation) => (
                   <tr key={invitation.id}>
                     <td className="px-4 py-3">{invitation.email}</td>
-                    <td className="px-4 py-3">{invitation.role}</td>
+                    <td className="px-4 py-3">{roleLabel[invitation.role]}</td>
                     <td className="px-4 py-3">{formatDate(invitation.expiresAt)}</td>
                   </tr>
                 ))}
@@ -627,14 +667,21 @@ export default function GroupDetailPage() {
         <div className="space-y-4">
           <div className="flex justify-end">
             <Button disabled={group.status === "CLOSED"} onClick={openContribModal}>
-              Registar contribuicao
+              {t("groupDetail.contributionsRegister")}
             </Button>
           </div>
 
           {isContribLoading ? (
-            <Loading message="Carregando contribuicoes..." />
+            <Loading message={t("groupDetail.loadingContributions")} />
           ) : contributions.length ? (
-            <Table headers={["Membro", "Valor", "Referencia", "Status"]}>
+            <Table
+              headers={[
+                t("groupDetail.contributionsTableMember"),
+                t("groupDetail.contributionsTableAmount"),
+                t("groupDetail.contributionsTableReference"),
+                t("groupDetail.contributionsTableStatus"),
+              ]}
+            >
               {contributions.map((item) => (
                 <tr key={item.id}>
                   <td className="px-4 py-3">
@@ -652,7 +699,7 @@ export default function GroupDetailPage() {
                             : "warning"
                       }
                     >
-                      {item.status}
+                      {contributionStatusLabel[item.status]}
                     </Badge>
                   </td>
                 </tr>
@@ -660,8 +707,8 @@ export default function GroupDetailPage() {
             </Table>
           ) : (
             <EmptyState
-              title="Sem contribuicoes"
-              description="Nenhuma contribuicao foi registrada para este grupo."
+              title={t("groupDetail.emptyContributionsTitle")}
+              description={t("groupDetail.emptyContributionsDescription")}
             />
           )}
         </div>
@@ -677,7 +724,7 @@ export default function GroupDetailPage() {
                 setIsLoanOpen(true);
               }}
             >
-              Solicitar emprestimo
+              {t("groupDetail.loansRequest")}
             </Button>
           </div>
 
@@ -688,9 +735,17 @@ export default function GroupDetailPage() {
           ) : null}
 
           {isLoansLoading ? (
-            <Loading message="Carregando emprestimos..." />
+            <Loading message={t("groupDetail.loadingLoans")} />
           ) : loans.length ? (
-            <Table headers={["Valor", "Juros", "Status", "Vencimento", "Acoes"]}>
+            <Table
+              headers={[
+                t("groupDetail.loansTableValue"),
+                t("groupDetail.loansTableInterest"),
+                t("groupDetail.loansTableStatus"),
+                t("groupDetail.loansTableDue"),
+                t("groupDetail.loansTableActions"),
+              ]}
+            >
               {loans.map((loan) => (
                 <tr key={loan.id}>
                   <td className="px-4 py-3">{formatCurrency(Number(loan.amount), group.currency)}</td>
@@ -707,7 +762,7 @@ export default function GroupDetailPage() {
                               : "info"
                       }
                     >
-                      {loan.status}
+                      {loanStatusLabel[loan.status]}
                     </Badge>
                   </td>
                   <td className="px-4 py-3">{formatDate(loan.dueDate)}</td>
@@ -720,14 +775,14 @@ export default function GroupDetailPage() {
                             className="h-8 px-2 text-xs"
                             onClick={() => onDecideLoan(loan.id, true)}
                           >
-                            Aprovar
+                            {t("groupDetail.approve")}
                           </Button>
                           <Button
                             variant="ghost"
                             className="h-8 px-2 text-xs"
                             onClick={() => onDecideLoan(loan.id, false)}
                           >
-                            Rejeitar
+                            {t("groupDetail.reject")}
                           </Button>
                         </>
                       ) : null}
@@ -741,7 +796,7 @@ export default function GroupDetailPage() {
                             setPayingLoanId(loan.id);
                           }}
                         >
-                          Registar pagamento
+                          {t("groupDetail.registerPayment")}
                         </Button>
                       ) : null}
                     </div>
@@ -750,24 +805,29 @@ export default function GroupDetailPage() {
               ))}
             </Table>
           ) : (
-            <EmptyState title="Sem emprestimos" description="Nenhum emprestimo encontrado para este grupo." />
+            <EmptyState title={t("groupDetail.emptyLoansTitle")} description={t("groupDetail.emptyLoansDescription")} />
           )}
         </div>
       ) : null}
 
-      <Modal title="Editar grupo" isOpen={isEditOpen} onClose={() => setIsEditOpen(false)}>
+      <Modal title={t("groupDetail.editModalTitle")} isOpen={isEditOpen} onClose={() => setIsEditOpen(false)}>
         <form className="space-y-4" onSubmit={onSaveEdit}>
-          <Input label="Nome" value={editName} onChange={(event) => setEditName(event.target.value)} required />
           <Input
-            label="Descricao"
+            label={t("groupsList.name")}
+            value={editName}
+            onChange={(event) => setEditName(event.target.value)}
+            required
+          />
+          <Input
+            label={t("groupsList.description")}
             value={editDescription}
             onChange={(event) => setEditDescription(event.target.value)}
-            placeholder="Opcional"
+            placeholder={t("common.optional")}
           />
 
           <div className="grid gap-4 sm:grid-cols-2">
             <Input
-              label="Contribuicao mensal"
+              label={t("groupsList.monthlyContribution")}
               type="number"
               min={1}
               value={editMonthlyContribution}
@@ -775,7 +835,7 @@ export default function GroupDetailPage() {
               required
             />
             <Input
-              label="Maximo de membros"
+              label={t("groupsList.maxMembers")}
               type="number"
               min={1}
               value={editMaxMembers}
@@ -784,32 +844,32 @@ export default function GroupDetailPage() {
           </div>
 
           <Select
-            label="Ciclo"
+            label={t("groupsList.cycle")}
             value={editCycleType}
             onChange={(event) => setEditCycleType(event.target.value as "WEEKLY" | "MONTHLY")}
           >
-            <option value="MONTHLY">Mensal</option>
-            <option value="WEEKLY">Semanal</option>
+            <option value="MONTHLY">{t("common.monthly")}</option>
+            <option value="WEEKLY">{t("common.weekly")}</option>
           </Select>
 
           {editError ? <p className="text-sm text-[#a31533]">{editError}</p> : null}
 
           <div className="flex justify-end gap-2">
             <Button variant="ghost" type="button" onClick={() => setIsEditOpen(false)}>
-              Cancelar
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={isSavingEdit}>
-              {isSavingEdit ? "A guardar..." : "Guardar"}
+              {isSavingEdit ? t("common.saving") : t("common.save")}
             </Button>
           </div>
         </form>
       </Modal>
 
-      <Modal title="Solicitar emprestimo" isOpen={isLoanOpen} onClose={() => setIsLoanOpen(false)}>
+      <Modal title={t("groupDetail.loanModalTitle")} isOpen={isLoanOpen} onClose={() => setIsLoanOpen(false)}>
         <form className="space-y-4" onSubmit={onRequestLoan}>
           <div className="grid gap-4 sm:grid-cols-2">
             <Input
-              label="Valor"
+              label={t("groupDetail.amount")}
               type="number"
               min={1}
               value={loanAmount}
@@ -817,7 +877,7 @@ export default function GroupDetailPage() {
               required
             />
             <Input
-              label="Juros (%)"
+              label={t("groupDetail.interestRate")}
               type="number"
               min={0}
               value={loanInterestRate}
@@ -826,13 +886,13 @@ export default function GroupDetailPage() {
             />
           </div>
           <Input
-            label="Motivo"
+            label={t("groupDetail.reason")}
             value={loanReason}
             onChange={(event) => setLoanReason(event.target.value)}
-            placeholder="Opcional"
+            placeholder={t("common.optional")}
           />
           <Input
-            label="Data de vencimento"
+            label={t("groupDetail.dueDate")}
             type="date"
             value={loanDueDate}
             onChange={(event) => setLoanDueDate(event.target.value)}
@@ -843,23 +903,23 @@ export default function GroupDetailPage() {
 
           <div className="flex justify-end gap-2">
             <Button variant="ghost" type="button" onClick={() => setIsLoanOpen(false)}>
-              Cancelar
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={isSavingLoan}>
-              {isSavingLoan ? "A enviar..." : "Solicitar"}
+              {isSavingLoan ? t("groupDetail.sending") : t("groupDetail.solicitar")}
             </Button>
           </div>
         </form>
       </Modal>
 
       <Modal
-        title="Registar pagamento"
+        title={t("groupDetail.paymentModalTitle")}
         isOpen={Boolean(payingLoanId)}
         onClose={() => setPayingLoanId(null)}
       >
         <form className="space-y-4" onSubmit={onSubmitPayment}>
           <Input
-            label="Valor pago"
+            label={t("groupDetail.paidAmount")}
             type="number"
             min={1}
             value={paymentAmount}
@@ -871,24 +931,24 @@ export default function GroupDetailPage() {
 
           <div className="flex justify-end gap-2">
             <Button variant="ghost" type="button" onClick={() => setPayingLoanId(null)}>
-              Cancelar
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={isSavingPayment}>
-              {isSavingPayment ? "A guardar..." : "Registar"}
+              {isSavingPayment ? t("common.saving") : t("groupDetail.registar")}
             </Button>
           </div>
         </form>
       </Modal>
 
       <Modal
-        title="Registar contribuicao"
+        title={t("groupDetail.contribModalTitle")}
         isOpen={isContribOpen}
         onClose={() => setIsContribOpen(false)}
       >
         <form className="space-y-4" onSubmit={onRegisterContribution}>
           {canApproveLoans ? (
             <Select
-              label="Membro"
+              label={t("groupDetail.member")}
               value={contribUserId}
               onChange={(event) => setContribUserId(event.target.value)}
               required
@@ -907,7 +967,7 @@ export default function GroupDetailPage() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <Input
-              label="Valor"
+              label={t("groupDetail.amount")}
               type="number"
               min={1}
               value={contribAmount}
@@ -915,7 +975,7 @@ export default function GroupDetailPage() {
               required
             />
             <Input
-              label="Mes de referencia"
+              label={t("groupDetail.referenceMonth")}
               type="month"
               value={contribReferenceMonth}
               onChange={(event) => setContribReferenceMonth(event.target.value)}
@@ -925,15 +985,15 @@ export default function GroupDetailPage() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <Select
-              label="Status"
+              label={t("groupDetail.membersTableStatus")}
               value={contribStatus}
               onChange={(event) => setContribStatus(event.target.value as "PAID" | "LATE")}
             >
-              <option value="PAID">Pago</option>
-              <option value="LATE">Pago com atraso</option>
+              <option value="PAID">{t("groupDetail.contribStatusPaid")}</option>
+              <option value="LATE">{t("groupDetail.contribStatusLate")}</option>
             </Select>
             <Input
-              label="Data do pagamento"
+              label={t("groupDetail.paymentDate")}
               type="date"
               value={contribPaidAt}
               onChange={(event) => setContribPaidAt(event.target.value)}
@@ -945,10 +1005,10 @@ export default function GroupDetailPage() {
 
           <div className="flex justify-end gap-2">
             <Button variant="ghost" type="button" onClick={() => setIsContribOpen(false)}>
-              Cancelar
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={isSavingContrib}>
-              {isSavingContrib ? "A guardar..." : "Registar"}
+              {isSavingContrib ? t("common.saving") : t("groupDetail.registar")}
             </Button>
           </div>
         </form>

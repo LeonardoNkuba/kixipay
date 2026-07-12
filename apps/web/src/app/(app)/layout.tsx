@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Header, Loading, Sidebar } from "@/components";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, isLoading, isAuthenticated, logout } = useAuth();
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -19,7 +21,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   if (isLoading || !user) {
     return (
       <main className="min-h-screen bg-[radial-gradient(circle_at_top,#fff6d5_0%,#f8f2df_35%,#f2ebd0_100%)] p-6">
-        <Loading message="Validando sessao..." />
+        <Loading message={t("nav.validatingSession")} />
       </main>
     );
   }
@@ -44,7 +46,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <main className="px-4 py-5 sm:px-6">{children}</main>
 
         <footer className="border-t border-[#e8dcae] px-6 py-4 text-xs text-[#806a25]">
-          KixiPay • FinTech Social para digitalizar a Kixikila
+          {t("nav.footer")}
         </footer>
       </div>
     </div>

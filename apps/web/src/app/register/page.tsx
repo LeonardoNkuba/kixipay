@@ -4,6 +4,8 @@ import { FormEvent, Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/hooks/useLanguage";
+import { LanguageSwitcher } from "@/components";
 import { acceptInvitation } from "@/services/invitations";
 
 function RegisterForm() {
@@ -11,6 +13,7 @@ function RegisterForm() {
   const searchParams = useSearchParams();
   const inviteToken = searchParams.get("token") || "";
   const { register } = useAuth();
+  const { t } = useLanguage();
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -34,12 +37,12 @@ function RegisterForm() {
     setErrorMessage("");
 
     if (password.length < 6) {
-      setErrorMessage("A palavra-passe deve ter no minimo 6 caracteres.");
+      setErrorMessage(t("auth.register.passwordTooShort"));
       return;
     }
 
     if (password !== confirmPassword) {
-      setErrorMessage("As palavras-passe nao coincidem.");
+      setErrorMessage(t("auth.register.passwordMismatch"));
       return;
     }
 
@@ -62,7 +65,7 @@ function RegisterForm() {
 
       router.push("/dashboard");
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Erro inesperado ao criar conta.");
+      setErrorMessage(error instanceof Error ? error.message : t("auth.register.genericError"));
     } finally {
       setIsLoading(false);
     }
@@ -74,14 +77,16 @@ function RegisterForm() {
           <div className="pointer-events-none absolute -left-16 -top-16 h-44 w-44 rounded-full bg-[#ffce00]/18" />
           <div className="pointer-events-none absolute left-6 top-14 h-36 w-36 rounded-full border-8 border-[#c8102e]/35" />
 
+          <div className="flex justify-end">
+            <LanguageSwitcher variant="dark" />
+          </div>
+
           <header className="mx-auto flex max-w-md flex-col items-center gap-2 text-center">
             <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#ffce00]">
               kixipay
             </p>
-            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Criar conta</h1>
-            <p className="text-sm text-[#d8cfb2]">
-              Junte-se a sua kixikila com transparencia e seguranca desde o primeiro dia.
-            </p>
+            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{t("auth.register.title")}</h1>
+            <p className="text-sm text-[#d8cfb2]">{t("auth.register.subtitle")}</p>
           </header>
 
           <form
@@ -92,7 +97,7 @@ function RegisterForm() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <label htmlFor="firstName" className="text-sm text-[#ffce00]">
-                  Nome
+                  {t("auth.register.firstName")}
                 </label>
                 <input
                   id="firstName"
@@ -109,7 +114,7 @@ function RegisterForm() {
 
               <div className="space-y-2">
                 <label htmlFor="lastName" className="text-sm text-[#ffce00]">
-                  Sobrenome
+                  {t("auth.register.lastName")}
                 </label>
                 <input
                   id="lastName"
@@ -127,7 +132,7 @@ function RegisterForm() {
 
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm text-[#ffce00]">
-                Email
+                {t("auth.register.email")}
               </label>
               <input
                 id="email"
@@ -143,7 +148,7 @@ function RegisterForm() {
 
             <div className="space-y-2">
               <label htmlFor="phone" className="text-sm text-[#ffce00]">
-                Telefone <span className="text-[#d8cfb2]">(opcional)</span>
+                {t("auth.register.phone")} <span className="text-[#d8cfb2]">{t("auth.register.phoneOptional")}</span>
               </label>
               <input
                 id="phone"
@@ -160,14 +165,14 @@ function RegisterForm() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label htmlFor="password" className="text-sm text-[#ffce00]">
-                    Palavra-passe
+                    {t("auth.register.password")}
                   </label>
                   <button
                     type="button"
                     onClick={() => setShowPassword((value) => !value)}
                     className="text-xs text-[#d8cfb2] transition hover:text-[#ffce00]"
                   >
-                    {showPassword ? "Ocultar" : "Mostrar"}
+                    {showPassword ? t("auth.login.hide") : t("auth.login.show")}
                   </button>
                 </div>
                 <input
@@ -185,7 +190,7 @@ function RegisterForm() {
 
               <div className="space-y-2">
                 <label htmlFor="confirmPassword" className="text-sm text-[#ffce00]">
-                  Confirmar
+                  {t("auth.register.confirmPassword")}
                 </label>
                 <input
                   id="confirmPassword"
@@ -201,7 +206,7 @@ function RegisterForm() {
               </div>
             </div>
 
-            <p className="text-xs text-[#d8cfb2]">Use no minimo 6 caracteres na palavra-passe.</p>
+            <p className="text-xs text-[#d8cfb2]">{t("auth.register.hint")}</p>
 
             {errorMessage ? (
               <p className="rounded-lg border border-[#c8102e]/70 bg-[#c8102e]/15 px-3 py-2 text-xs text-[#ffb8c4]">
@@ -214,14 +219,14 @@ function RegisterForm() {
               disabled={isLoading}
               className="h-12 w-full rounded-xl bg-[#c8102e] text-sm font-semibold tracking-wide text-[#fbf7e6] transition hover:bg-[#a40d25] disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {isLoading ? "A criar conta..." : "Criar conta"}
+              {isLoading ? t("auth.register.submitting") : t("auth.register.submit")}
             </button>
 
             <div className="flex flex-col items-center justify-center gap-3 pt-1 text-sm text-[#d8cfb2]">
               <span>
-                Ja tem conta?{" "}
+                {t("auth.register.alreadyHaveAccount")}{" "}
                 <Link href="/" className="font-semibold text-[#ffce00] transition hover:underline">
-                  Entrar
+                  {t("auth.register.login")}
                 </Link>
               </span>
             </div>

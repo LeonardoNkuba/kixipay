@@ -6,11 +6,13 @@ import { Plus, Users } from "lucide-react";
 import { Button, Card, EmptyState, Input, Loading, Modal, Select } from "@/components";
 import { useAuth } from "@/hooks/useAuth";
 import { useGroups } from "@/hooks/useGroups";
+import { useLanguage } from "@/hooks/useLanguage";
 import { formatCurrency } from "@/utils/format";
 
 export default function GroupsPage() {
   const { token } = useAuth();
   const { groups, isLoading, error, refresh, addGroup } = useGroups(token);
+  const { t } = useLanguage();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState("");
@@ -49,22 +51,22 @@ export default function GroupsPage() {
       setIsCreateOpen(false);
       resetForm();
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : "Erro ao criar grupo.");
+      setFormError(err instanceof Error ? err.message : t("groupsList.genericError"));
     } finally {
       setIsSaving(false);
     }
   };
 
   if (isLoading) {
-    return <Loading message="Carregando seus grupos..." />;
+    return <Loading message={t("groupsList.loadingMessage")} />;
   }
 
   if (error) {
     return (
       <EmptyState
-        title="Erro ao carregar grupos"
+        title={t("groupsList.errorTitle")}
         description={error}
-        actionLabel="Tentar novamente"
+        actionLabel={t("common.tryAgain")}
         onAction={refresh}
       />
     );
@@ -74,20 +76,20 @@ export default function GroupsPage() {
     <div className="space-y-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#2d2206]">Meus Grupos</h1>
-          <p className="text-sm text-[#7d6822]">Gerencie suas kixikilas e acompanhe os membros.</p>
+          <h1 className="text-2xl font-bold text-[#2d2206]">{t("groupsList.title")}</h1>
+          <p className="text-sm text-[#7d6822]">{t("groupsList.subtitle")}</p>
         </div>
         <Button onClick={() => setIsCreateOpen(true)} className="inline-flex items-center gap-2">
           <Plus size={16} />
-          Novo Grupo
+          {t("groupsList.newGroup")}
         </Button>
       </div>
 
       {!groups.length ? (
         <EmptyState
-          title="Voce ainda nao possui grupos"
-          description="Crie seu primeiro grupo para iniciar a jornada financeira colaborativa."
-          actionLabel="Criar Grupo"
+          title={t("groupsList.emptyTitle")}
+          description={t("groupsList.emptyDescription")}
+          actionLabel={t("groupsList.createAction")}
           onAction={() => setIsCreateOpen(true)}
           icon={<Users size={20} />}
         />
@@ -99,17 +101,17 @@ export default function GroupsPage() {
             const balance = monthlyValue * activeMembers;
 
             return (
-              <Card key={group.id} title={group.name} subtitle={group.description || "Sem descricao"}>
+              <Card key={group.id} title={group.name} subtitle={group.description || t("groupDetail.noDescription")}>
                 <div className="space-y-2 text-sm text-[#4f4013]">
-                  <p>{activeMembers} membros ativos</p>
-                  <p>Saldo estimado: {formatCurrency(balance, group.currency)}</p>
-                  <p>Contribuicao: {formatCurrency(monthlyValue, group.currency)}</p>
+                  <p>{t("groupsList.activeMembers", { count: activeMembers })}</p>
+                  <p>{t("groupsList.estimatedBalance", { value: formatCurrency(balance, group.currency) })}</p>
+                  <p>{t("groupsList.contribution", { value: formatCurrency(monthlyValue, group.currency) })}</p>
                 </div>
                 <Link
                   href={`/groups/${group.id}`}
                   className="mt-4 inline-flex rounded-lg bg-[#fff4ce] px-3 py-1.5 text-sm font-semibold text-[#6f101f] transition hover:bg-[#ffe49a]"
                 >
-                  Entrar
+                  {t("groupsList.enter")}
                 </Link>
               </Card>
             );
@@ -117,19 +119,19 @@ export default function GroupsPage() {
         </section>
       )}
 
-      <Modal title="Criar Novo Grupo" isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)}>
+      <Modal title={t("groupsList.modalTitle")} isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)}>
         <form className="space-y-4" onSubmit={onSubmit}>
-          <Input label="Nome" value={name} onChange={(event) => setName(event.target.value)} required />
+          <Input label={t("groupsList.name")} value={name} onChange={(event) => setName(event.target.value)} required />
           <Input
-            label="Descricao"
+            label={t("groupsList.description")}
             value={description}
             onChange={(event) => setDescription(event.target.value)}
-            placeholder="Opcional"
+            placeholder={t("common.optional")}
           />
 
           <div className="grid gap-4 sm:grid-cols-2">
             <Input
-              label="Contribuicao mensal"
+              label={t("groupsList.monthlyContribution")}
               type="number"
               min={1}
               value={monthlyContribution}
@@ -137,7 +139,7 @@ export default function GroupsPage() {
               required
             />
             <Input
-              label="Maximo de membros"
+              label={t("groupsList.maxMembers")}
               type="number"
               min={1}
               value={maxMembers}
@@ -147,15 +149,15 @@ export default function GroupsPage() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <Select
-              label="Ciclo"
+              label={t("groupsList.cycle")}
               value={cycleType}
               onChange={(event) => setCycleType(event.target.value as "WEEKLY" | "MONTHLY")}
             >
-              <option value="MONTHLY">Mensal</option>
-              <option value="WEEKLY">Semanal</option>
+              <option value="MONTHLY">{t("common.monthly")}</option>
+              <option value="WEEKLY">{t("common.weekly")}</option>
             </Select>
             <Input
-              label="Data de inicio"
+              label={t("groupsList.startDate")}
               type="date"
               value={startDate}
               onChange={(event) => setStartDate(event.target.value)}
@@ -167,10 +169,10 @@ export default function GroupsPage() {
 
           <div className="flex justify-end gap-2">
             <Button variant="ghost" type="button" onClick={() => setIsCreateOpen(false)}>
-              Cancelar
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={isSaving}>
-              {isSaving ? "A criar..." : "Criar"}
+              {isSaving ? t("groupsList.creating") : t("groupsList.create")}
             </Button>
           </div>
         </form>

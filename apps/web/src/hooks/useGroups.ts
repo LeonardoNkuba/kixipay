@@ -3,12 +3,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { ApiClientError } from "@/services/api";
 import { createGroup, CreateGroupInput, getGroups } from "@/services/groups";
+import { useLanguage } from "@/hooks/useLanguage";
 import { Group } from "@/types/domain";
 
 export const useGroups = (token: string | null) => {
   const [groups, setGroups] = useState<Group[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string>("");
+  const { t } = useLanguage();
 
   const refresh = useCallback(async () => {
     if (!token) {
@@ -24,23 +26,23 @@ export const useGroups = (token: string | null) => {
       const data = await getGroups(token);
       setGroups(data);
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Erro ao carregar grupos.");
+      setError(err instanceof ApiClientError ? err.message : t("groupsList.loadError"));
     } finally {
       setIsLoading(false);
     }
-  }, [token]);
+  }, [token, t]);
 
   const addGroup = useCallback(
     async (payload: CreateGroupInput) => {
       if (!token) {
-        throw new Error("Sessao expirada.");
+        throw new Error(t("common.sessionExpired"));
       }
 
       const created = await createGroup(token, payload);
       setGroups((prev) => [created, ...prev]);
       return created;
     },
-    [token],
+    [token, t],
   );
 
   useEffect(() => {

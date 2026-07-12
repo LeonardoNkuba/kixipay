@@ -4,6 +4,8 @@ import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/hooks/useLanguage";
+import { LanguageSwitcher } from "@/components";
 import { acceptInvitation, getInvitationByToken, InvitationPreview } from "@/services/invitations";
 
 function AcceptInviteContent() {
@@ -11,6 +13,7 @@ function AcceptInviteContent() {
   const searchParams = useSearchParams();
   const inviteToken = searchParams.get("token") || "";
   const { token, user, isLoading: isAuthLoading, logout } = useAuth();
+  const { t } = useLanguage();
 
   const [preview, setPreview] = useState<InvitationPreview | null>(null);
   const [isLoadingPreview, setIsLoadingPreview] = useState(true);
@@ -27,9 +30,10 @@ function AcceptInviteContent() {
     getInvitationByToken(inviteToken)
       .then((data) => setPreview(data))
       .catch((error) =>
-        setPreviewError(error instanceof Error ? error.message : "Convite invalido ou expirado."),
+        setPreviewError(error instanceof Error ? error.message : t("invite.invalidOrExpired")),
       )
       .finally(() => setIsLoadingPreview(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inviteToken]);
 
   const onAccept = async () => {
@@ -44,7 +48,7 @@ function AcceptInviteContent() {
       const result = await acceptInvitation(token, inviteToken);
       router.push(`/groups/${result.groupId}`);
     } catch (error) {
-      setAcceptError(error instanceof Error ? error.message : "Erro ao aceitar convite.");
+      setAcceptError(error instanceof Error ? error.message : t("invite.acceptError"));
       setIsAccepting(false);
     }
   };
@@ -58,29 +62,33 @@ function AcceptInviteContent() {
       <div className="relative p-6 sm:p-8 md:p-10">
         <div className="pointer-events-none absolute -left-16 -top-16 h-44 w-44 rounded-full bg-[#ffce00]/18" />
 
+        <div className="flex justify-end">
+          <LanguageSwitcher variant="dark" />
+        </div>
+
         <header className="mx-auto flex flex-col items-center gap-2 text-center">
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#ffce00]">kixipay</p>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Convite para grupo</h1>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t("invite.title")}</h1>
         </header>
 
         {!inviteToken || previewError ? (
           <div className="mt-8 space-y-4 text-center">
             <p className="rounded-lg border border-[#c8102e]/70 bg-[#c8102e]/15 px-4 py-3 text-sm text-[#ffb8c4]">
-              {previewError || "Este link de convite parece invalido ou incompleto."}
+              {previewError || t("invite.invalidLink")}
             </p>
             <Link href="/" className="inline-block text-sm font-semibold text-[#ffce00] hover:underline">
-              Voltar para o login
+              {t("invite.backToLogin")}
             </Link>
           </div>
         ) : isLoadingPreview || isAuthLoading ? (
-          <p className="mt-8 text-center text-sm text-[#d8cfb2]">Carregando convite...</p>
+          <p className="mt-8 text-center text-sm text-[#d8cfb2]">{t("invite.loading")}</p>
         ) : preview ? (
           <div className="mt-8 space-y-5">
             <div className="space-y-1 rounded-xl border border-[#ffce00]/25 bg-[#0f0f10]/60 px-4 py-3 text-center">
-              <p className="text-sm text-[#d8cfb2]">Voce foi convidado para</p>
+              <p className="text-sm text-[#d8cfb2]">{t("invite.invitedTo")}</p>
               <p className="text-lg font-bold text-[#fbf7e6]">{preview.groupName}</p>
               <p className="text-xs text-[#d8cfb2]">
-                Cargo: {preview.role} · Email convidado: {preview.email}
+                {t("invite.roleAndEmail", { role: preview.role, email: preview.email })}
               </p>
             </div>
 
@@ -90,13 +98,13 @@ function AcceptInviteContent() {
                   href={`/register?token=${inviteToken}&email=${encodeURIComponent(preview.email)}`}
                   className="h-12 w-full rounded-xl bg-[#c8102e] px-4 text-center text-sm font-semibold leading-[3rem] text-[#fbf7e6] transition hover:bg-[#a40d25]"
                 >
-                  Criar conta e entrar no grupo
+                  {t("invite.createAccountAndJoin")}
                 </Link>
                 <Link
                   href={`/?redirect=${encodeURIComponent(`/accept-invite?token=${inviteToken}`)}`}
                   className="h-12 w-full rounded-xl border border-[#ffce00]/35 px-4 text-center text-sm font-semibold leading-[3rem] text-[#ffce00] transition hover:bg-[#ffce00]/10"
                 >
-                  Ja tenho conta
+                  {t("invite.alreadyHaveAccount")}
                 </Link>
               </div>
             ) : emailMatches ? (
@@ -112,21 +120,20 @@ function AcceptInviteContent() {
                   disabled={isAccepting}
                   className="h-12 w-full rounded-xl bg-[#c8102e] text-sm font-semibold tracking-wide text-[#fbf7e6] transition hover:bg-[#a40d25] disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  {isAccepting ? "A entrar no grupo..." : "Aceitar convite"}
+                  {isAccepting ? t("invite.accepting") : t("invite.accept")}
                 </button>
               </div>
             ) : (
               <div className="space-y-3 text-center">
                 <p className="rounded-lg border border-[#c8102e]/70 bg-[#c8102e]/15 px-4 py-3 text-xs text-[#ffb8c4]">
-                  Este convite foi emitido para {preview.email}, mas voce esta autenticado como{" "}
-                  {user?.email}.
+                  {t("invite.emailMismatch", { inviteEmail: preview.email, userEmail: user?.email || "" })}
                 </p>
                 <button
                   type="button"
                   onClick={logout}
                   className="text-sm font-semibold text-[#ffce00] hover:underline"
                 >
-                  Sair e entrar com outra conta
+                  {t("invite.logoutAndSwitch")}
                 </button>
               </div>
             )}

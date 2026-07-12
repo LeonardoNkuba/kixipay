@@ -2,8 +2,10 @@
 
 import { Menu, Search, Bell, ChevronDown } from "lucide-react";
 import { AuthUser } from "@/types/domain";
+import { useLanguage } from "@/hooks/useLanguage";
 import { initials } from "@/utils/format";
 import { Avatar } from "@/components/Avatar";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 type HeaderProps = {
   user: AuthUser;
@@ -11,6 +13,8 @@ type HeaderProps = {
 };
 
 export const Header = ({ user, onOpenSidebar }: HeaderProps) => {
+  const { t } = useLanguage();
+
   return (
     <header className="sticky top-0 z-20 border-b border-[#eddca2] bg-[#fffdf4]/95 px-4 py-3 backdrop-blur sm:px-6">
       <div className="flex items-center gap-3">
@@ -26,10 +30,12 @@ export const Header = ({ user, onOpenSidebar }: HeaderProps) => {
           <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#987d2c]" />
           <input
             type="search"
-            placeholder="Pesquisar grupo, membro ou transacao"
+            placeholder={t("nav.searchPlaceholder")}
             className="h-10 w-full rounded-xl border border-[#e6d7a2] bg-white pl-9 pr-3 text-sm text-[#32270b] outline-none focus:border-[#cba23a] focus:ring-2 focus:ring-[#ffce00]/30"
           />
         </div>
+
+        <LanguageSwitcher className="hidden sm:inline-flex" />
 
         <button type="button" className="rounded-xl border border-[#e8d9a4] bg-white p-2 text-[#6f101f]">
           <Bell size={18} />
