@@ -2,6 +2,7 @@
 
 import { FormEvent, Suspense, useEffect, useState } from "react";
 import Link from "next/link";
+import { Sparkles } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -11,12 +12,13 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/dashboard";
-  const { login } = useAuth();
+  const { login, demoLogin } = useAuth();
   const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDemoLoading, setIsDemoLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
@@ -38,6 +40,20 @@ function LoginForm() {
       setErrorMessage(error instanceof Error ? error.message : t("auth.login.genericError"));
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const onDemoClick = async () => {
+    setErrorMessage("");
+    setIsDemoLoading(true);
+
+    try {
+      await demoLogin();
+      router.push(redirectTo);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : t("auth.login.genericError"));
+    } finally {
+      setIsDemoLoading(false);
     }
   };
 
@@ -118,6 +134,16 @@ function LoginForm() {
               className="h-12 w-full rounded-xl bg-[#c8102e] text-sm font-semibold tracking-wide text-[#fbf7e6] transition hover:bg-[#a40d25] disabled:cursor-not-allowed disabled:opacity-70"
             >
               {isLoading ? t("auth.login.submitting") : t("auth.login.submit")}
+            </button>
+
+            <button
+              type="button"
+              onClick={onDemoClick}
+              disabled={isDemoLoading}
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#ffce00]/50 bg-transparent text-sm font-semibold tracking-wide text-[#ffce00] transition hover:bg-[#ffce00]/10 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              <Sparkles size={16} />
+              {isDemoLoading ? t("auth.login.tryDemoLoading") : t("auth.login.tryDemo")}
             </button>
 
             <div className="flex flex-col items-center justify-between gap-3 pt-1 text-sm text-[#d8cfb2] sm:flex-row">

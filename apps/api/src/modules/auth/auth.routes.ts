@@ -3,7 +3,7 @@ import { z } from "zod";
 import { asyncHandler } from "../../lib/http.js";
 import { prisma } from "../../lib/prisma.js";
 import { requireAuth } from "../../middlewares/auth.js";
-import { loginUser, registerUser, requestPasswordReset, resetPassword } from "./auth.service.js";
+import { demoLogin, loginUser, registerUser, requestPasswordReset, resetPassword } from "./auth.service.js";
 
 const registerSchema = z.object({
   firstName: z.string().min(2),
@@ -60,10 +60,19 @@ authRouter.get(
         email: true,
         phone: true,
         status: true,
+        isDemo: true,
       },
     });
 
     res.json(user);
+  }),
+);
+
+authRouter.post(
+  "/demo",
+  asyncHandler(async (_req, res) => {
+    const result = await demoLogin();
+    res.json(result);
   }),
 );
 

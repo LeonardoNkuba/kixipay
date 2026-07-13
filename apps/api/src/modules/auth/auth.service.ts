@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import crypto from "node:crypto";
 import { ApiError } from "../../lib/http.js";
 import { prisma } from "../../lib/prisma.js";
+import { ensureDemoAdmin, resetDemoDataset } from "../demo/demo-dataset.js";
 
 const signToken = (userId: string, email: string) => {
   const secret = process.env.JWT_SECRET;
@@ -45,6 +46,7 @@ export const registerUser = async (input: {
       firstName: true,
       lastName: true,
       email: true,
+      isDemo: true,
     },
   });
 
@@ -71,6 +73,29 @@ export const loginUser = async (input: { email: string; password: string }) => {
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
+      isDemo: user.isDemo,
+    },
+    token,
+  };
+};
+
+export const demoLogin = async () => {
+  const demoUser = await ensureDemoAdmin(prisma);
+
+  const existingGroup = await prisma.group.findFirst({ where: { createdBy: demoUser.id } });
+  if (!existingGroup) {
+    await resetDemoDataset(prisma, demoUser.id);
+  }
+
+  const token = signToken(demoUser.id, demoUser.email);
+
+  return {
+    user: {
+      id: demoUser.id,
+      firstName: demoUser.firstName,
+      lastName: demoUser.lastName,
+      email: demoUser.email,
+      isDemo: demoUser.isDemo,
     },
     token,
   };

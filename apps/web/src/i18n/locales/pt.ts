@@ -40,6 +40,9 @@ export const pt = {
     logout: "Logout",
     searchPlaceholder: "Pesquisar grupo, membro ou transacao",
     footer: "KixiPay • FinTech Social para digitalizar a Kixikila",
+    demoEnvironment: "Ambiente de demonstracao",
+    demoReset: "Reiniciar demo",
+    demoResetLoading: "A reiniciar...",
     validatingSession: "Validando sessao...",
   },
   auth: {
@@ -59,6 +62,8 @@ export const pt = {
       privacy: "Politica de privacidade",
       requestAccount: "Pedir conta",
       needHelp: "Precisa de ajuda?",
+      tryDemo: "Experimentar demo ao vivo",
+      tryDemoLoading: "A preparar demo...",
       genericError: "Erro inesperado ao autenticar.",
     },
     register: {

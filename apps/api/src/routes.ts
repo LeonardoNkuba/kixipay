@@ -9,10 +9,12 @@ import { auditRouter } from "./modules/audit/audit.routes.js";
 import { invitationsRouter } from "./modules/invitations/invitations.routes.js";
 import { dashboardRouter } from "./modules/dashboard/dashboard.routes.js";
 import { reportsRouter } from "./modules/reports/reports.routes.js";
+import { adminRouter } from "./modules/admin/admin.routes.js";
 
 export const apiRouter = Router();
 
 apiRouter.use("/auth", authRouter);
+apiRouter.use("/admin", adminRouter);
 // Sem requireAuth global: GET /:token precisa ser publico para quem ainda nao tem conta.
 apiRouter.use("/invitations", invitationsRouter);
 apiRouter.use("/groups", requireAuth, groupsRouter);

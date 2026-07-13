@@ -9,7 +9,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, isLoading, isAuthenticated, logout } = useAuth();
+  const { user, token, isLoading, isAuthenticated, logout } = useAuth();
   const { t } = useLanguage();
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       />
 
       <div className="lg:pl-72">
-        <Header user={user} onOpenSidebar={() => setSidebarOpen(true)} />
+        <Header user={user} token={token} onOpenSidebar={() => setSidebarOpen(true)} />
 
         <main className="px-4 py-5 sm:px-6">{children}</main>
 

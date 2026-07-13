@@ -43,6 +43,9 @@ export const es: Dictionary = {
     searchPlaceholder: "Buscar grupo, miembro o transaccion",
     footer: "KixiPay • FinTech Social para digitalizar la Kixikila",
     validatingSession: "Validando sesion...",
+    demoEnvironment: "Entorno de demostracion",
+    demoReset: "Reiniciar demo",
+    demoResetLoading: "Reiniciando...",
   },
   auth: {
     login: {
@@ -61,6 +64,8 @@ export const es: Dictionary = {
       privacy: "Politica de privacidad",
       requestAccount: "Solicitar cuenta",
       needHelp: "¿Necesitas ayuda?",
+      tryDemo: "Probar demo en vivo",
+      tryDemoLoading: "Preparando demo...",
       genericError: "Error inesperado al autenticar.",
     },
     register: {

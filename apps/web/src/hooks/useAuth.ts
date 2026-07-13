@@ -90,6 +90,33 @@ export const useAuth = () => {
     return payload;
   };
 
+  const demoLogin = async () => {
+    const payload = await fetch(`${getApiBaseUrl()}/auth/demo`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }).then(async (response) => {
+      const body = (await response.json().catch(() => ({}))) as {
+        token?: string;
+        user?: AuthUser;
+        message?: string;
+      };
+
+      if (!response.ok || !body.token || !body.user) {
+        throw new Error(body.message || "Nao foi possivel iniciar o modo demo.");
+      }
+
+      return body as LoginPayload;
+    });
+
+    localStorage.setItem(TOKEN_KEY, payload.token);
+    localStorage.setItem(USER_KEY, JSON.stringify(payload.user));
+    setToken(payload.token);
+    setUser(payload.user);
+    return payload;
+  };
+
   const register = async (input: RegisterInput) => {
     const payload = await fetch(`${getApiBaseUrl()}/auth/register`, {
       method: "POST",
@@ -132,6 +159,7 @@ export const useAuth = () => {
       isLoading,
       isAuthenticated: Boolean(token),
       login,
+      demoLogin,
       register,
       logout,
     }),

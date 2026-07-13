@@ -73,6 +73,7 @@ model User {
   passwordHash       String
   avatar             String?
   isVerified         Boolean        @default(false)
+  isDemo             Boolean        @default(false)
   status             UserStatus     @default(ACTIVE)
   resetPasswordToken     String?    @unique
   resetPasswordExpiresAt DateTime?

@@ -5,6 +5,7 @@ export type AuthUser = {
   email: string;
   phone?: string | null;
   status?: string;
+  isDemo?: boolean;
 };
 
 export type GroupSettings = {

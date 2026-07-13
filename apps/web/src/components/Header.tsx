@@ -1,22 +1,51 @@
 "use client";
 
-import { Menu, Search, Bell, ChevronDown } from "lucide-react";
+import { useState } from "react";
+import { Menu, Search, Bell, ChevronDown, RotateCcw } from "lucide-react";
 import { AuthUser } from "@/types/domain";
 import { useLanguage } from "@/hooks/useLanguage";
 import { initials } from "@/utils/format";
 import { Avatar } from "@/components/Avatar";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { resetDemoData } from "@/services/admin";
 
 type HeaderProps = {
   user: AuthUser;
+  token: string | null;
   onOpenSidebar: () => void;
 };
 
-export const Header = ({ user, onOpenSidebar }: HeaderProps) => {
+export const Header = ({ user, token, onOpenSidebar }: HeaderProps) => {
   const { t } = useLanguage();
+  const [isResetting, setIsResetting] = useState(false);
+
+  const onResetDemo = async () => {
+    if (!token || isResetting) return;
+    setIsResetting(true);
+    try {
+      await resetDemoData(token);
+      window.location.reload();
+    } catch {
+      setIsResetting(false);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-20 border-b border-[#eddca2] bg-[#fffdf4]/95 px-4 py-3 backdrop-blur sm:px-6">
+      {user.isDemo ? (
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[#3aa76d]/30 bg-[#3aa76d]/10 px-3 py-2 text-xs font-medium text-[#1f6b45]">
+          <span>🟢 {t("nav.demoEnvironment")}</span>
+          <button
+            type="button"
+            onClick={onResetDemo}
+            disabled={isResetting}
+            className="flex items-center gap-1 rounded-md border border-[#3aa76d]/40 bg-white px-2 py-1 text-[#1f6b45] transition hover:bg-[#3aa76d]/10 disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            <RotateCcw size={12} />
+            {isResetting ? t("nav.demoResetLoading") : t("nav.demoReset")}
+          </button>
+        </div>
+      ) : null}
       <div className="flex items-center gap-3">
         <button
           type="button"

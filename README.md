@@ -23,7 +23,8 @@ Monorepo inicializado com:
 
 ## Marco Atual
 
-Dia 6 concluido (responsividade, testes automatizados e pagina de Relatorios com dados reais).
+Dia 7 concluido no lado de codigo (modo demo pronto para pitch). Falta apenas o deploy em si
+(Vercel/Railway), que depende de contas que so o utilizador tem acesso — ver `docs/deploy-checklist.md`.
 
 Entregas validadas (Dia 1):
 - Backend API operacional (Express + TypeScript)
@@ -70,6 +71,13 @@ Entregas validadas (Dia 6):
 - Pagina de Relatorios com dados reais: novo endpoint `GET /api/reports/summary` (totais de contribuicoes coletadas/pendentes e emprestimos emitidos/em aberto, resumo por grupo, ranking de confianca dos membros)
 - `npm run lint` (apps/web) corrigido: a regra `react-hooks/set-state-in-effect` conflitava com o padrao "fetch on mount" usado em todos os hooks de dados da aplicacao; desativada com justificativa em `eslint.config.mjs`
 
+Entregas validadas (Dia 7):
+- Modo demo ponta-a-ponta: botao "Experimentar demo ao vivo" no ecra de login (`POST /api/auth/demo`) cria/reaproveita uma conta `demo@kixipay.ao` (`isDemo=true` no modelo `User`, nova migracao) e faz login automatico, sem palavra-passe
+- Dataset de demonstracao realista gerado sob pedido (`apps/api/src/modules/demo/demo-dataset.ts`): 1 grupo, 18 membros, 6 meses de contribuicoes (108 registos com mistura de pagas/atrasadas/pendentes), 5 emprestimos em todos os estados (pendente/aprovado/rejeitado/pago), indices de confianca calculados, transacoes, notificacoes e registos de auditoria
+- Botao "Reiniciar demo" no cabecalho (visivel so para a conta demo, com o badge "Ambiente de demonstracao"): chama `POST /api/admin/reset-demo` e repoe os dados de demonstracao sem precisar de redeploy
+- `docs/deploy-checklist.md`: guia passo-a-passo para deploy em Vercel (web) e Railway (api) sobre a base Supabase existente — o deploy em si nao foi executado nesta sessao, requer as contas do utilizador
+- Correcao de seguranca: senha real da base de dados removida de `.env.example` (estava commitada em texto simples)
+
 ## Estrutura
 
 ```text
@@ -96,6 +104,7 @@ kixipay/
 - docs/architecture-stack.md
 - docs/data-model.md
 - docs/roadmap-7-days.md
+- docs/deploy-checklist.md
 
 ## Scripts (raiz)
 
@@ -139,8 +148,10 @@ npm run dev
 - Email: {privado}
 - Senha: {privado}
 
-## Proximo Marco (Dia 7)
+## Proximo Marco
 
-- Deploy (web no Vercel, API no Railway, conforme `docs/architecture-stack.md`) - ainda nao existe implantacao publica
-- Pitch e video de demonstracao
-- Sugestao: rodar `npm run prisma:seed` antes da demo para limpar dados de teste acumulados durante o desenvolvimento (grupos "EvolvOUT"/"Contas da Empresa" e alguns registos avulsos de contribuicao/emprestimo usados para validar funcionalidades)
+- Deploy real (web no Vercel, API no Railway, conforme `docs/deploy-checklist.md`) - ainda nao existe implantacao publica; o codigo esta pronto, falta so executar os passos (contas Vercel/Railway sao do utilizador)
+- `JWT_SECRET` de producao: gerar um valor novo e forte, nao reaproveitar o placeholder do `.env.example`
+- Pitch e video de demonstracao (o modo demo torna isto trivial: basta clicar "Experimentar demo ao vivo")
+- Nota de seguranca em aberto (decisao do utilizador, adiada para depois do pitch): a senha real da base de dados Supabase esteve commitada no `.env` versionado deste repositorio publico e ainda nao foi rodada — recomendado rodar a senha no painel do Supabase antes de dar uso continuo a esta base
+- Sugestao: rodar `npm run prisma:seed` antes da demo para limpar dados de teste acumulados durante o desenvolvimento (grupos "EvolvOUT"/"Contas da Empresa" e alguns registos avulsos de contribuicao/emprestimo usados para validar funcionalidades) — os dados da conta demo (`demo@kixipay.ao`) sao independentes e reiniciam-se pelo botao "Reiniciar demo"
