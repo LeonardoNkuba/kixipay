@@ -1,157 +1,176 @@
 # KixiPay
 
-KixiPay e uma FinTech Social para digitalizar a Kixikila e criar confianca atraves da tecnologia.
+> A Social FinTech that digitizes Kixikilas (community savings groups), improving transparency, trust, and financial inclusion.
 
-## Visao
+🌍 **Live Demo:** [kixipay.up.railway.app](https://kixipay.up.railway.app)
 
-Nao estamos a construir apenas um sistema de registos.
+## Screenshots
 
-Estamos a construir uma plataforma que:
-- digitaliza grupos de poupanca comunitaria
-- aumenta transparencia nas contribuicoes e emprestimos
-- reduz conflitos, fraude e perda de registos
-- cria historico de confianca para inclusao financeira futura
+| Landing / Login | Dashboard |
+| --- | --- |
+| ![Landing page](assets/screenshots/01-landing.png) | ![Dashboard](assets/screenshots/02-dashboard.png) |
 
-## Estado Atual
+| Groups | Members & Trust Score |
+| --- | --- |
+| ![Groups](assets/screenshots/03-groups.png) | ![Members](assets/screenshots/04-members.png) |
 
-Monorepo inicializado com:
-- apps/web (Next.js + TypeScript)
-- apps/api (Express + TypeScript)
-- packages/ui
-- packages/types
-- packages/utils
+| Loans | Reports |
+| --- | --- |
+| ![Loans](assets/screenshots/05-loans.png) | ![Reports](assets/screenshots/06-reports.png) |
 
-## Marco Atual
+| Mobile |
+| --- |
+| ![Mobile dashboard](assets/screenshots/07-mobile.png) |
 
-Dia 7 concluido no lado de codigo (modo demo pronto para pitch). Falta apenas o deploy em si
-(Vercel/Railway), que depende de contas que so o utilizador tem acesso — ver `docs/deploy-checklist.md`.
+## The Problem
 
-Entregas validadas (Dia 1):
-- Backend API operacional (Express + TypeScript)
-- Banco de dados PostgreSQL configurado com Prisma
-- Autenticacao JWT funcional
-- Hash de senha com bcrypt
-- Login funcional (frontend e API)
-- Middleware de autenticacao ativo
-- Rotas protegidas no backend
-- Dashboard protegido no frontend
+Community savings groups (Kixikilas) are often managed manually using notebooks and messaging apps.
 
-Entregas validadas (Dia 2):
-- Sessao do frontend integrada com `GET /api/auth/me`
-- Fluxo de registro completo (frontend + API), com login automatico apos o cadastro
-- Recuperacao de senha (modo demo: link gerado e logado no console da API, sem envio real de email)
-- Dashboard com dados reais de grupos, contribuicoes e emprestimos
-- Convite de membros para grupos por email (token de convite, aceitacao via link, cadastro ou login do convidado)
-- Fallback de migrations do Prisma para o pooler do Supabase (`scripts/apply-migration.ts`), documentado em `prisma/README.md`
+This leads to:
 
-Entregas validadas (Dia 3):
-- CRUD completo de grupos: edicao (`PATCH /api/groups/:groupId`) e mudanca de estado - pausar/reativar/encerrar (`PATCH /api/groups/:groupId/status`)
-- Gestao de membros existentes: alterar cargo e remover do grupo (`PATCH`/`DELETE /api/groups/:groupId/members/:membershipId`), com protecao contra remover o ultimo administrador do grupo
-- Fluxo de emprestimos ponta a ponta na interface: solicitacao, aprovacao/rejeicao e registo de pagamento (endpoints de emprestimo ja existiam na API; passaram a estar acessiveis pela UI)
-- Correcao de seguranca: `GET /api/loans/group/:groupId` deixou de expor hash de senha e token de recuperacao dos utilizadores
+- Lost records
+- Human errors
+- Lack of transparency
+- Fraud
+- Difficulties accessing formal financial services
 
-Entregas validadas (Dia 4):
-- Servico de indice de confianca (`apps/api/src/modules/trust-score`): recalcula `score`/`onTimePayments`/`latePayments` por membro a cada contribuicao ou emprestimo pago
-- Pontualidade de contribuicoes calculada a partir do dia de cobranca do grupo (`GroupSettings.collectionDay`); pontualidade de emprestimos calculada ao quitar o valor total antes ou depois da data de vencimento
-- Interface de contribuicoes: registo de pagamento (admin/tesoureiro podem registar por qualquer membro; membro comum so registra a propria contribuicao)
-- Badge de confianca na aba Membros de cada grupo
+## The Solution
 
-Entregas validadas (Dia 5):
-- Endpoint `GET /api/dashboard` consolidado no backend, substituindo a agregacao N+1 que o frontend fazia (uma chamada a `/groups` mais uma chamada a `/loans/group/:id` por grupo)
-- Grafico "Emprestimos por Status" no dashboard (pendente/aprovado/rejeitado/pago), com paleta de cores validada para contraste e daltonismo (`node scripts/validate_palette.js`, skill dataviz)
+KixiPay digitizes community savings groups by providing:
 
-Internacionalizacao (fora do cronograma de 7 dias, a pedido):
-- Interface do `apps/web` traduzida para portugues, ingles, espanhol e frances (`apps/web/src/i18n/`)
-- Troca de idioma client-side (sem rotas por locale), persistida em `localStorage`, disponivel no ecra de login/registo e no cabecalho/definicoes da aplicacao
-- Mensagens de erro devolvidas pela API continuam em portugues (fora deste escopo; exigiria codigos de erro em vez de texto livre)
+- Group management
+- Member management
+- Contributions
+- Loans
+- Trust Score
+- Reports
+- Secure authentication
 
-Entregas validadas (Dia 6):
-- Correcao de responsividade: dropdown de cargo na tabela de Membros ficava ilegivel (~1 caractere) em ecrans estreitos por falta de largura minima; agora o cargo fica legivel e a tabela usa scroll horizontal como as demais
-- Testes automatizados (`apps/api`, Vitest): 15 testes cobrindo o calculo de indice de confianca e, em especial, a logica de pontualidade (`isContributionOnTime`/`isLoanPaymentOnTime`), extraida para `apps/api/src/modules/trust-score/punctuality.ts` com um teste de regressao para o bug de fuso horario do Dia 4
-- Pagina de Relatorios com dados reais: novo endpoint `GET /api/reports/summary` (totais de contribuicoes coletadas/pendentes e emprestimos emitidos/em aberto, resumo por grupo, ranking de confianca dos membros)
-- `npm run lint` (apps/web) corrigido: a regra `react-hooks/set-state-in-effect` conflitava com o padrao "fetch on mount" usado em todos os hooks de dados da aplicacao; desativada com justificativa em `eslint.config.mjs`
+## Features
 
-Entregas validadas (Dia 7):
-- Modo demo ponta-a-ponta: botao "Experimentar demo ao vivo" no ecra de login (`POST /api/auth/demo`) cria/reaproveita uma conta `demo@kixipay.ao` (`isDemo=true` no modelo `User`, nova migracao) e faz login automatico, sem palavra-passe
-- Dataset de demonstracao realista gerado sob pedido (`apps/api/src/modules/demo/demo-dataset.ts`): 1 grupo, 18 membros, 6 meses de contribuicoes (108 registos com mistura de pagas/atrasadas/pendentes), 5 emprestimos em todos os estados (pendente/aprovado/rejeitado/pago), indices de confianca calculados, transacoes, notificacoes e registos de auditoria
-- Botao "Reiniciar demo" no cabecalho (visivel so para a conta demo, com o badge "Ambiente de demonstracao"): chama `POST /api/admin/reset-demo` e repoe os dados de demonstracao sem precisar de redeploy
-- `docs/deploy-checklist.md`: guia passo-a-passo para deploy em Vercel (web) e Railway (api) sobre a base Supabase existente — o deploy em si nao foi executado nesta sessao, requer as contas do utilizador
-- Correcao de seguranca: senha real da base de dados removida de `.env.example` (estava commitada em texto simples)
+- ✅ JWT Authentication
+- ✅ Secure Password Hashing (bcrypt)
+- ✅ User Registration
+- ✅ Password Recovery
+- ✅ Group Management (create, edit, pause/reactivate/close)
+- ✅ Member Management (roles, invitations, last-admin lockout protection)
+- ✅ Contribution Tracking
+- ✅ Loan Management (request, approve/reject, repayment)
+- ✅ Trust Score (punctuality-based, recalculated automatically)
+- ✅ Consolidated Dashboard & Reports
+- ✅ One-Click Live Demo Mode (auto-seeded, self-resetting)
+- ✅ Internationalization (PT / EN / ES / FR)
+- ✅ Responsive Design
+- ✅ Automated Tests
 
-## Estrutura
+## Architecture
 
-```text
+```
+Next.js (client)
+        ↓
+Express API
+        ↓
+Prisma ORM
+        ↓
+PostgreSQL (Supabase)
+```
+
+## Tech Stack
+
+| Layer | Technology |
+| --- | --- |
+| Frontend | Next.js, React |
+| Backend | Node.js, Express |
+| ORM | Prisma |
+| Database | PostgreSQL (Supabase) |
+| Authentication | JWT |
+| Styling | Tailwind CSS |
+| Language | TypeScript |
+| Testing | Vitest |
+| Deployment | Railway (web + API) + Supabase |
+
+## Project Structure
+
+```
 kixipay/
-|- apps/
-|  |- web/
-|  \- api/
-|- packages/
-|  |- ui/
-|  |- types/
-|  \- utils/
-|- docs/
-|- database/
-|- prisma/
-|- assets/
-\- README.md
+├─ apps/
+│  ├─ web/       # Next.js frontend
+│  └─ api/       # Express backend
+├─ packages/
+│  ├─ ui/
+│  ├─ types/
+│  └─ utils/
+├─ docs/         # Product & architecture docs, deploy checklist, dev log
+├─ prisma/       # Schema, migrations, seed
+├─ database/     # DB notes / auxiliary SQL
+├─ scripts/      # One-off tooling (e.g. migration fallback)
+└─ assets/       # Screenshots and other static assets
 ```
 
-## Documentacao de Produto
-
-- docs/vision.md
-- docs/mvp-features.md
-- docs/premium-features.md
-- docs/architecture-stack.md
-- docs/data-model.md
-- docs/roadmap-7-days.md
-- docs/deploy-checklist.md
-
-## Scripts (raiz)
-
-- npm run dev
-- npm run dev:web
-- npm run dev:api
-- npm run build
-- npm run typecheck
-- npm run test
-- npm run prisma:generate
-- npm run prisma:migrate
-- npm run prisma:seed
-
-## Como Executar
-
-1. Instalar dependencias:
+## Getting Started
 
 ```bash
+git clone https://github.com/LeonardoNkuba/kixipay.git
+cd kixipay
 npm install
-```
-
-2. Configurar variaveis de ambiente (raiz):
-
-- criar `.env` com base em `.env.example`
-- definir `JWT_SECRET`, `DATABASE_URL` e `DIRECT_URL`
-
-3. Subir frontend e backend:
-
-```bash
+cp .env.example .env
+npm run prisma:migrate
+npm run prisma:seed
 npm run dev
 ```
 
-4. Enderecos locais:
-
 - Web: http://localhost:3000
 - API: http://localhost:3333
-- Health: http://localhost:3333/health
+- Health check: http://localhost:3333/health
 
-## Conta Demo (Seed)
+## Environment Variables
 
-- Email: {privado}
-- Senha: {privado}
+```
+DATABASE_URL=
+DIRECT_URL=
+JWT_SECRET=
+```
 
-## Proximo Marco
+`apps/web` also needs `NEXT_PUBLIC_API_URL` when deployed (it falls back to `http://localhost:3333/api` otherwise). Never commit real values — see `.env.example` for the format.
 
-- Deploy real (web no Vercel, API no Railway, conforme `docs/deploy-checklist.md`) - ainda nao existe implantacao publica; o codigo esta pronto, falta so executar os passos (contas Vercel/Railway sao do utilizador)
-- `JWT_SECRET` de producao: gerar um valor novo e forte, nao reaproveitar o placeholder do `.env.example`
-- Pitch e video de demonstracao (o modo demo torna isto trivial: basta clicar "Experimentar demo ao vivo")
-- Nota de seguranca em aberto (decisao do utilizador, adiada para depois do pitch): a senha real da base de dados Supabase esteve commitada no `.env` versionado deste repositorio publico e ainda nao foi rodada — recomendado rodar a senha no painel do Supabase antes de dar uso continuo a esta base
-- Sugestao: rodar `npm run prisma:seed` antes da demo para limpar dados de teste acumulados durante o desenvolvimento (grupos "EvolvOUT"/"Contas da Empresa" e alguns registos avulsos de contribuicao/emprestimo usados para validar funcionalidades) — os dados da conta demo (`demo@kixipay.ao`) sao independentes e reiniciam-se pelo botao "Reiniciar demo"
+## Try the Live Demo
+
+1. Visit [kixipay.up.railway.app](https://kixipay.up.railway.app)
+2. Click **Experimentar demo ao vivo** ("Try live demo")
+3. You're in — a pre-populated group with 18 members and 6 months of history, no registration required
+
+A "Reset demo" button in the header (visible only on the demo account) restores the sample data at any time.
+
+## Roadmap
+
+- Push notifications
+- QR payments
+- Mobile app
+- AI fraud detection
+- Credit scoring
+- Banking integration
+
+## Team
+
+**Leonardo Nkuba**
+
+- Backend
+- Frontend
+- Architecture
+- Database
+- Deployment
+
+## Documentation
+
+- `docs/vision.md`
+- `docs/mvp-features.md`
+- `docs/premium-features.md`
+- `docs/architecture-stack.md`
+- `docs/data-model.md`
+- `docs/roadmap-7-days.md`
+- `docs/deploy-checklist.md`
+- `docs/development-log.md` — day-by-day build log
+
+## License
+
+MIT — see [LICENSE](LICENSE).
