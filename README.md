@@ -23,7 +23,7 @@ Monorepo inicializado com:
 
 ## Marco Atual
 
-Dia 5 concluido (endpoint de dashboard consolidado e grafico de emprestimos por status).
+Dia 6 concluido (responsividade, testes automatizados e pagina de Relatorios com dados reais).
 
 Entregas validadas (Dia 1):
 - Backend API operacional (Express + TypeScript)
@@ -64,6 +64,12 @@ Internacionalizacao (fora do cronograma de 7 dias, a pedido):
 - Troca de idioma client-side (sem rotas por locale), persistida em `localStorage`, disponivel no ecra de login/registo e no cabecalho/definicoes da aplicacao
 - Mensagens de erro devolvidas pela API continuam em portugues (fora deste escopo; exigiria codigos de erro em vez de texto livre)
 
+Entregas validadas (Dia 6):
+- Correcao de responsividade: dropdown de cargo na tabela de Membros ficava ilegivel (~1 caractere) em ecrans estreitos por falta de largura minima; agora o cargo fica legivel e a tabela usa scroll horizontal como as demais
+- Testes automatizados (`apps/api`, Vitest): 15 testes cobrindo o calculo de indice de confianca e, em especial, a logica de pontualidade (`isContributionOnTime`/`isLoanPaymentOnTime`), extraida para `apps/api/src/modules/trust-score/punctuality.ts` com um teste de regressao para o bug de fuso horario do Dia 4
+- Pagina de Relatorios com dados reais: novo endpoint `GET /api/reports/summary` (totais de contribuicoes coletadas/pendentes e emprestimos emitidos/em aberto, resumo por grupo, ranking de confianca dos membros)
+- `npm run lint` (apps/web) corrigido: a regra `react-hooks/set-state-in-effect` conflitava com o padrao "fetch on mount" usado em todos os hooks de dados da aplicacao; desativada com justificativa em `eslint.config.mjs`
+
 ## Estrutura
 
 ```text
@@ -98,6 +104,7 @@ kixipay/
 - npm run dev:api
 - npm run build
 - npm run typecheck
+- npm run test
 - npm run prisma:generate
 - npm run prisma:migrate
 - npm run prisma:seed
@@ -132,7 +139,8 @@ npm run dev
 - Email: {privado}
 - Senha: {privado}
 
-## Proximo Marco (Dia 6)
+## Proximo Marco (Dia 7)
 
-- Relatorios (`/reports`) com dados reais (hoje e apenas um placeholder "modulo em preparacao")
-- Responsividade e testes, conforme `docs/roadmap-7-days.md`
+- Deploy (web no Vercel, API no Railway, conforme `docs/architecture-stack.md`) - ainda nao existe implantacao publica
+- Pitch e video de demonstracao
+- Sugestao: rodar `npm run prisma:seed` antes da demo para limpar dados de teste acumulados durante o desenvolvimento (grupos "EvolvOUT"/"Contas da Empresa" e alguns registos avulsos de contribuicao/emprestimo usados para validar funcionalidades)

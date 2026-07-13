@@ -586,7 +586,7 @@ export default function GroupDetailPage() {
                         onChange={(event) =>
                           onChangeMemberRole(membership.id, event.target.value as Role)
                         }
-                        className="h-9"
+                        className="h-9 min-w-38"
                       >
                         <option value="MEMBER">{roleLabel.MEMBER}</option>
                         <option value="TREASURER">{roleLabel.TREASURER}</option>

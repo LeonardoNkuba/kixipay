@@ -93,3 +93,29 @@ export type DashboardStats = {
   chartData: Array<{ name: string; value: number }>;
   loansByStatus: Array<{ status: "PENDING" | "APPROVED" | "REJECTED" | "PAID"; count: number }>;
 };
+
+export type ReportsSummary = {
+  totals: {
+    contributionsCollected: number;
+    contributionsPending: number;
+    loansOutstanding: number;
+    loansIssued: number;
+  };
+  groups: Array<{
+    groupId: string;
+    groupName: string;
+    currency: string;
+    contributionsCollected: number;
+    contributionsPending: number;
+    loansOutstanding: number;
+    loansCount: number;
+  }>;
+  trustLeaderboard: Array<{
+    membershipId: string;
+    name: string;
+    groupName: string;
+    score: number;
+    onTimePayments: number;
+    latePayments: number;
+  }>;
+};

@@ -5,6 +5,16 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  {
+    rules: {
+      // This app's data hooks (useGroups, useLoans, useDashboard, etc.) all
+      // follow the standard "fetch on mount" pattern: a useEffect calls an
+      // async refresh() that eventually setStates. This rule flags every
+      // instance of that deliberate, pervasive pattern; disabling it here
+      // instead of scattering ~13 inline suppressions across the codebase.
+      "react-hooks/set-state-in-effect": "off",
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

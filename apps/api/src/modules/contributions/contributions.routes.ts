@@ -4,6 +4,7 @@ import { z } from "zod";
 import { ApiError, asyncHandler } from "../../lib/http.js";
 import { prisma } from "../../lib/prisma.js";
 import { recordPunctualityEvent } from "../trust-score/trust-score.service.js";
+import { isContributionOnTime } from "../trust-score/punctuality.js";
 
 const createContributionSchema = z.object({
   groupId: z.string().uuid(),
@@ -99,24 +100,16 @@ contributionsRouter.post(
       });
 
       if (payload.status !== ContributionStatus.PENDING) {
-        let onTime = payload.status === ContributionStatus.PAID;
+        const settings = await tx.groupSettings.findUnique({
+          where: { groupId: payload.groupId },
+        });
 
-        if (onTime) {
-          const settings = await tx.groupSettings.findUnique({
-            where: { groupId: payload.groupId },
-          });
-
-          if (settings) {
-            const dueDate = new Date(
-              Date.UTC(
-                payload.referenceMonth.getUTCFullYear(),
-                payload.referenceMonth.getUTCMonth(),
-                settings.collectionDay,
-              ),
-            );
-            onTime = (paidAt as Date) <= dueDate;
-          }
-        }
+        const onTime = isContributionOnTime(
+          payload.status,
+          paidAt,
+          payload.referenceMonth,
+          settings?.collectionDay,
+        );
 
         await recordPunctualityEvent(tx, membership.id, onTime);
       }

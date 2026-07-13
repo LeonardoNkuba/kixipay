@@ -4,6 +4,7 @@ import { z } from "zod";
 import { ApiError, asyncHandler } from "../../lib/http.js";
 import { prisma } from "../../lib/prisma.js";
 import { recordPunctualityEvent } from "../trust-score/trust-score.service.js";
+import { isLoanPaymentOnTime } from "../trust-score/punctuality.js";
 
 const createLoanSchema = z.object({
   groupId: z.string().uuid(),
@@ -217,7 +218,7 @@ loansRouter.post(
         });
 
         if (membership) {
-          const onTime = payload.paidAt <= loan.dueDate;
+          const onTime = isLoanPaymentOnTime(payload.paidAt, loan.dueDate);
           await recordPunctualityEvent(tx, membership.id, onTime);
         }
       }

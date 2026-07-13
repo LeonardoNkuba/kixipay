@@ -8,6 +8,7 @@ import { notificationsRouter } from "./modules/notifications/notifications.route
 import { auditRouter } from "./modules/audit/audit.routes.js";
 import { invitationsRouter } from "./modules/invitations/invitations.routes.js";
 import { dashboardRouter } from "./modules/dashboard/dashboard.routes.js";
+import { reportsRouter } from "./modules/reports/reports.routes.js";
 
 export const apiRouter = Router();
 
@@ -20,3 +21,4 @@ apiRouter.use("/loans", requireAuth, loansRouter);
 apiRouter.use("/notifications", requireAuth, notificationsRouter);
 apiRouter.use("/audit", requireAuth, auditRouter);
 apiRouter.use("/dashboard", requireAuth, dashboardRouter);
+apiRouter.use("/reports", requireAuth, reportsRouter);
