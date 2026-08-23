@@ -2,7 +2,7 @@
 
 > A Social FinTech that digitizes Kixikilas (community savings groups), improving transparency, trust, and financial inclusion.
 
-🌍 **Live Demo:** [kixipay.up.railway.app](https://kixipay.up.railway.app)
+🌍 **Live Demo:** Soon
 
 ## Screenshots
 
